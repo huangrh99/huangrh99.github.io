@@ -845,7 +845,7 @@
         </figcaption>
       </figure>
       <figure class="result-figure result-figure-compact">
-        <img src="./static/images/comparison_reward.png" alt="Comparison of DVReward against existing reward models on SD3.5M and BAGEL backbones, evaluated on TIIF-Bench and GenEval">
+        <img src="./static/images/comparison_reward.png" style="width: min(100%, 480px);" alt="Comparison of DVReward against existing reward models on SD3.5M and BAGEL backbones, evaluated on TIIF-Bench and GenEval">
         <figcaption>
           <b>Reward model comparison across backbones.</b> We compare our <b>DVReward</b> against existing reward signals (PickScore, VIEScore, HPSv3, UnifiedReward) on two backbones: <b>SD3.5M</b> (pure DiT) and <b>BAGEL</b> (unified MLLM). DVReward consistently matches or surpasses prior rewards on TIIF-Bench (Short / Long) and GenEval, showing the reward design is backbone-agnostic and generalizes across different DiT architectures. Unlike holistic scalar rewards that collapse a prompt into a single number, DVReward decomposes each prompt into verifiable sub-questions and aggregates per-question scores, providing a finer-grained training signal.
         </figcaption>
