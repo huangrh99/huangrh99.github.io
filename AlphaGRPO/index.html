@@ -451,6 +451,36 @@
       color: #1A1A2E;
       font-weight: 700;
     }
+    .takeaway-panel {
+      margin-top: 1.5rem;
+    }
+    .takeaway-title {
+      font-size: 1.35rem;
+      margin-bottom: 1rem;
+      color: #1A1A2E;
+    }
+    .takeaway-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    .takeaway-card {
+      background: #fff;
+      border: 1px solid #E8E8EC;
+      border-radius: 8px;
+      padding: 1.15rem 1.1rem;
+    }
+    .takeaway-card b {
+      display: block;
+      color: #1A1A2E;
+      font-size: 0.96rem;
+      margin-bottom: 0.45rem;
+    }
+    .takeaway-card p {
+      color: #4A4A6A;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
 
     .table-wrapper {
       overflow-x: auto;
@@ -615,6 +645,7 @@
       .hero h1 { font-size: 2.8rem; }
       .hero-subtitle { font-size: 1rem; }
       .contrib-grid { grid-template-columns: 1fr; }
+      .takeaway-grid { grid-template-columns: 1fr; }
       .row { flex-direction: column; gap: 1.5rem; }
       .col-half { min-width: 100%; }
       .section { padding: 3rem 0; }
@@ -809,6 +840,28 @@
           <b>GEdit-Bench-EN.</b> These results evaluate editing transfer performance. AlphaGRPO improves GEdit scores even though the model is not trained on editing tasks.
         </figcaption>
       </figure>
+
+      <div class="takeaway-panel">
+        <h3 class="takeaway-title">Key Experimental Findings</h3>
+        <div class="takeaway-grid">
+          <div class="takeaway-card">
+            <b>Low-res RL transfers upward.</b>
+            <p>Although AlphaGRPO is optimized at 512px, the learned alignment generalizes to 1024px generation benchmarks.</p>
+          </div>
+          <div class="takeaway-card">
+            <b>SRR training improves T2I.</b>
+            <p>Training on self-reflective refinement still yields strong downstream T2I gains, comparable to direct RT2I optimization.</p>
+          </div>
+          <div class="takeaway-card">
+            <b>Test-time reflection compounds gains.</b>
+            <p>Inference-time SRR lets the model diagnose and correct one-pass generation errors, further boosting TIIF-Bench and GenEval.</p>
+          </div>
+          <div class="takeaway-card">
+            <b>Editing transfer emerges.</b>
+            <p>Without editing-task training, AlphaGRPO improves GEdit, showing that generation alignment transfers to instruction-based editing.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
