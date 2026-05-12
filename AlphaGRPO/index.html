@@ -412,6 +412,53 @@
     .callout strong { color: #92640A; }
     .callout p { font-size: 0.95rem; color: #5A4A2A; line-height: 1.65; margin: 0; }
 
+    /* ===== Top Sticky Nav ===== */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(250, 250, 248, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(232, 232, 236, 0.7);
+      padding: 0.7rem 0;
+    }
+    .top-nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+    .top-nav-brand {
+      font-weight: 700;
+      color: #1A1A2E;
+      font-size: 1.05rem;
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+    .top-nav-brand .alpha { color: #4A6CF7; }
+    .top-nav-links { display: flex; gap: 1.5rem; }
+    .top-nav-links a {
+      color: #4A4A6A;
+      text-decoration: none;
+      font-size: 0.93rem;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .top-nav-links a:hover { color: #2947C7; }
+    section[id] { scroll-margin-top: 70px; }
+    @media (max-width: 768px) {
+      .top-nav-container { gap: 0.8rem; }
+      .top-nav-brand { font-size: 0.95rem; }
+      .top-nav-links { gap: 0.9rem; }
+      .top-nav-links a { font-size: 0.82rem; }
+    }
+
     /* ===== Results Tables ===== */
     .results-block { margin-bottom: 2.5rem; }
     .results-block h4 {
@@ -668,8 +715,22 @@
 
 <body>
 
+<!-- ========== NAV ========== -->
+<nav class="top-nav">
+  <div class="top-nav-container">
+    <a href="#top" class="top-nav-brand"><span class="alpha">Alpha</span>GRPO</a>
+    <div class="top-nav-links">
+      <a href="#abstract">Abstract</a>
+      <a href="#method">Method</a>
+      <a href="#results">Results</a>
+      <a href="#qualitative">Qualitative</a>
+      <a href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</nav>
+
 <!-- ========== HERO ========== -->
-<section class="hero">
+<section class="hero" id="top">
   <div class="hero-orb hero-orb-1"></div>
   <div class="hero-orb hero-orb-2"></div>
   <div class="hero-content">
@@ -746,7 +807,7 @@
 </section>
 
 <!-- ========== ABSTRACT ========== -->
-<section class="section">
+<section class="section" id="abstract">
   <div class="container">
     <h2 class="section-title reveal">Abstract<span class="accent-dot"></span></h2>
     <div style="height: 2rem;"></div>
@@ -790,7 +851,7 @@
 </section>
 
 <!-- ========== METHOD ========== -->
-<section class="section">
+<section class="section" id="method">
   <div class="container">
     <h2 class="section-title reveal">Method<span class="accent-dot"></span></h2>
     <div style="height: 2rem;"></div>
@@ -826,7 +887,7 @@
 </section>
 
 <!-- ========== RESULTS ========== -->
-<section class="section section-alt">
+<section class="section section-alt" id="results">
   <div class="container">
     <h2 class="section-title reveal">Main Results<span class="accent-dot"></span></h2>
     <div style="height: 2rem;"></div>
@@ -844,13 +905,6 @@
           <b>GEdit-Bench-EN.</b> These results evaluate editing transfer performance. AlphaGRPO improves GEdit scores even though the model is not trained on editing tasks.
         </figcaption>
       </figure>
-      <figure class="result-figure result-figure-compact">
-        <img src="./static/images/comparison_reward.png" style="width: min(100%, 480px);" alt="Comparison of DVReward against existing reward models on SD3.5M and BAGEL backbones, evaluated on TIIF-Bench and GenEval">
-        <figcaption>
-          <b>Reward model comparison across diffusion models.</b> We compare our <b>DVReward</b> against existing reward signals (PickScore, VIEScore, HPSv3, UnifiedReward) on two distinct diffusion-based generators: <b>SD3.5M</b> (pure DiT) and <b>BAGEL</b> (unified MLLM with a diffusion image head). DVReward consistently matches or surpasses prior rewards on TIIF-Bench (Short / Long) and GenEval, showing the reward design generalizes across different diffusion-model architectures. Unlike holistic scalar rewards that collapse a prompt into a single number, DVReward decomposes each prompt into verifiable sub-questions and aggregates per-question scores, providing a finer-grained training signal.
-        </figcaption>
-      </figure>
-
       <div class="takeaway-panel">
         <h3 class="takeaway-title">Key Experimental Findings</h3>
         <div class="takeaway-grid">
@@ -872,12 +926,19 @@
           </div>
         </div>
       </div>
+
+      <figure class="result-figure result-figure-compact">
+        <img src="./static/images/comparison_reward.png" style="width: min(100%, 480px);" alt="Comparison of DVReward against existing reward models on SD3.5M and BAGEL, evaluated on TIIF-Bench and GenEval">
+        <figcaption>
+          <b>Reward model comparison across diffusion models.</b> We compare our <b>DVReward</b> against existing reward signals (PickScore, VIEScore, HPSv3, UnifiedReward) on two distinct diffusion-based generators: <b>SD3.5M</b> (pure DiT) and <b>BAGEL</b> (Unified Multimodal Model). DVReward consistently matches or surpasses prior rewards on TIIF-Bench (Short / Long) and GenEval, showing the reward design generalizes across different diffusion-model architectures. Unlike holistic scalar rewards that collapse a prompt into a single number, DVReward decomposes each prompt into verifiable sub-questions and aggregates per-question scores, providing a finer-grained training signal.
+        </figcaption>
+      </figure>
     </div>
   </div>
 </section>
 
 <!-- ========== QUALITATIVE ========== -->
-<section class="section">
+<section class="section" id="qualitative">
   <div class="container">
     <h2 class="section-title reveal">Qualitative Results<span class="accent-dot"></span></h2>
     <p class="section-subtitle reveal">
@@ -903,7 +964,7 @@
 </section>
 
 <!-- ========== BIBTEX ========== -->
-<section class="bibtex-section">
+<section class="bibtex-section" id="bibtex">
   <div class="container">
     <h2 class="reveal">BibTeX</h2>
     <div class="bibtex-block reveal">
