@@ -927,7 +927,8 @@
         </div>
       </div>
 
-      <figure class="result-figure result-figure-compact" style="margin-top: 3rem;">
+      <h3 class="takeaway-title" style="margin-top: 3rem;">Reward Ablation</h3>
+      <figure class="result-figure result-figure-compact">
         <img src="./static/images/comparison_reward.png" style="width: min(100%, 480px);" alt="Comparison of DVReward against existing reward models on SD3.5M and BAGEL, evaluated on TIIF-Bench and GenEval">
         <figcaption>
           <b>Reward model comparison across diffusion models.</b> We compare our <b>DVReward</b> against existing reward signals (PickScore, VIEScore, HPSv3, UnifiedReward) on two distinct diffusion-based generators: <b>SD3.5M</b> (pure DiT) and <b>BAGEL</b> (Unified Multimodal Model). DVReward consistently matches or surpasses prior rewards on TIIF-Bench (Short / Long) and GenEval, showing the reward design generalizes across different diffusion models. Unlike holistic scalar rewards that collapse a prompt into a single number, DVReward decomposes each prompt into verifiable sub-questions and aggregates per-question scores, providing a finer-grained training signal.
