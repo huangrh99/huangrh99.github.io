@@ -847,7 +847,7 @@
       <figure class="result-figure result-figure-compact">
         <img src="./static/images/comparison_reward.png" alt="Comparison of DVReward against existing reward models on SD3.5M and BAGEL backbones, evaluated on TIIF-Bench and GenEval">
         <figcaption>
-          <b>Reward model comparison across backbones.</b> We compare our <b>DVReward</b> against existing reward signals (PickScore, VIEScore, HPSv3, UnifiedReward) on two backbones: <b>SD3.5M</b> (pure DiT) and <b>BAGEL</b> (unified MLLM). DVReward consistently matches or surpasses prior rewards on TIIF-Bench (Short / Long) and GenEval, showing the reward design is backbone-agnostic and generalizes across different DiT architectures.
+          <b>Reward model comparison across backbones.</b> We compare our <b>DVReward</b> against existing reward signals (PickScore, VIEScore, HPSv3, UnifiedReward) on two backbones: <b>SD3.5M</b> (pure DiT) and <b>BAGEL</b> (unified MLLM). DVReward consistently matches or surpasses prior rewards on TIIF-Bench (Short / Long) and GenEval, showing the reward design is backbone-agnostic and generalizes across different DiT architectures. Unlike holistic scalar rewards that collapse a prompt into a single number, DVReward decomposes each prompt into verifiable sub-questions and aggregates per-question scores, providing a finer-grained training signal.
         </figcaption>
       </figure>
 
@@ -855,19 +855,19 @@
         <h3 class="takeaway-title">Key Experimental Findings</h3>
         <div class="takeaway-grid">
           <div class="takeaway-card">
-            <b>Low-resolution RL generalizes.</b>
+            <b>Low-resolution RL generalizes to high resolution.</b>
             <p>Although AlphaGRPO is optimized at 512px, it improves 1024px generation results, indicating learned semantic alignment rather than pixel memorization.</p>
           </div>
           <div class="takeaway-card">
-            <b>SRR transfers beyond refinement.</b>
+            <b>SRR training transfers beyond refinement.</b>
             <p>Self-reflective refinement training also improves downstream T2I, matching or surpassing direct RT2I optimization on several metrics.</p>
           </div>
           <div class="takeaway-card">
-            <b>Inference-time SRR boosts results.</b>
+            <b>Inference-time SRR boosts benchmark scores.</b>
             <p>Test-time self-reflection further raises performance, including +4.5 on TIIF-Bench Short and +3.4 on GenEval over one-pass AlphaGRPO.</p>
           </div>
           <div class="takeaway-card">
-            <b>Editing transfer emerges.</b>
+            <b>Editing transfer emerges without editing training.</b>
             <p>Without editing-task training, RT2I improves GEdit by +0.33 and SRR reaches +0.52 over BAGEL, showing transfer to instruction-based editing.</p>
           </div>
         </div>
