@@ -384,6 +384,7 @@
     }
     .finding-card img {
       border-radius: 8px;
+      margin: 0 auto;
     }
 
     /* ===== Method ===== */
@@ -642,9 +643,9 @@
     </p>
 
     <div class="hero-authors">
-      <span><a href="https://scholar.google.com/citations?user=B5zcj4wAAAAJ">Runhui Huang</a><sup>1,2</sup></span>
+      <span><a href="https://scholar.google.com/citations?user=B5zcj4wAAAAJ">Runhui Huang</a><sup>1</sup></span>
       <span>Jie Wu<sup>2</sup></span>
-      <span>Rui Yang<sup>1,2</sup></span>
+      <span>Rui Yang<sup>1</sup></span>
       <span>Zhe Liu<sup>1</sup></span>
       <span><a href="https://hszhao.github.io/">Hengshuang Zhao</a><sup>1&dagger;</sup></span>
     </div>
@@ -761,7 +762,7 @@
     <div class="reveal">
       <img src="./static/images/method.png" class="method-figure" alt="Overview of AlphaGRPO framework and DVReward mechanism">
       <p class="method-caption">
-        <b>Figure 2.</b> Overview of the proposed framework. (a) AlphaGRPO optimizes two tasks under unified trajectories: Reasoning T2I and Self-Reflective Refinement. (b) DVReward decomposes user requests into atomic verifiable questions for reliable reward computation.
+        <b>AlphaGRPO and DVReward.</b> AlphaGRPO optimizes Reasoning T2I and Self-Reflective Refinement under unified multimodal trajectories, while DVReward decomposes user requests into atomic verifiable questions for reliable reward computation.
       </p>
     </div>
 
@@ -815,9 +816,9 @@
 <!-- ========== QUALITATIVE ========== -->
 <section class="section">
   <div class="container">
-    <h2 class="section-title reveal">Qualitative T2I Results<span class="accent-dot"></span></h2>
+    <h2 class="section-title reveal">Qualitative Results<span class="accent-dot"></span></h2>
     <p class="section-subtitle reveal">
-      All examples below are T2I visualizations. RT2I and SRR indicate the RL training task used to obtain each model variant, not a separate visualization setting.
+      The first two panels are T2I visualizations. RT2I and SRR indicate the RL training task used to obtain each model variant, not a separate visualization setting. The final panel shows image editing examples.
     </p>
     <div style="height: 2rem;"></div>
 
@@ -829,6 +830,11 @@
     <div class="qual-spacing reveal">
       <h4 class="qual-label">T2I Samples After SRR Training</h4>
       <img src="./static/images/appendix_srr.png" class="qual-img" loading="lazy" alt="T2I qualitative results for the model trained with self-reflective refinement RL">
+    </div>
+
+    <div class="qual-spacing reveal">
+      <h4 class="qual-label">Image Editing Results</h4>
+      <img src="./static/images/appendix_editing.png" class="qual-img" loading="lazy" alt="Qualitative image editing results for AlphaGRPO">
     </div>
   </div>
 </section>
