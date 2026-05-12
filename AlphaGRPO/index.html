@@ -669,7 +669,7 @@
     <div class="reveal">
       <img src="./static/images/teaser.png" class="teaser-img" width="2684" height="856" alt="Qualitative and quantitative comparisons of AlphaGRPO showing improvements over BAGEL in text-to-image generation and image editing">
       <p class="teaser-caption">
-        <b>Figure 1.</b> Qualitative and quantitative comparisons of AlphaGRPO. Training on self-reflective refinement and reasoning T2I consistently improves performance across text-to-image generation and image editing benchmarks.
+        <b>At a glance,</b> AlphaGRPO turns reasoning and self-reflection into stronger generation: the visual examples compare BAGEL, RT2I-trained AlphaGRPO, and inference-time SRR, while the radar chart summarizes gains on T2I and editing benchmarks.
       </p>
     </div>
   </div>
@@ -683,7 +683,7 @@
         <h3>TL;DR</h3>
         <p>
           AlphaGRPO is the <b>first GRPO framework for AR-Diffusion Native Unified Multimodal Models</b>.
-          It unlocks self-reflective reasoning and generation capabilities <i>without external knowledge injection</i>,
+          It strengthens self-reflective reasoning and generation capabilities,
           powered by a novel <b>Decompositional Verifiable Reward (DVReward)</b> that provides stable, interpretable supervision from open-source MLLMs.
         </p>
       </div>
@@ -693,7 +693,7 @@
       <div class="contrib-card reveal reveal-delay-1">
         <div class="contrib-num">01</div>
         <h4>GRPO for Unified Models</h4>
-        <p>First to introduce GRPO training to AR-Diffusion Native Unified Models. By eliciting the model's latent primitives, we enable <b>Reasoning T2I</b> and <b>Self-Reflective Refinement</b> without external knowledge.</p>
+        <p>First to introduce GRPO training to AR-Diffusion Native Unified Models. By optimizing the model's latent generative and reflective behaviors, we enable <b>Reasoning T2I</b> and <b>Self-Reflective Refinement</b>.</p>
       </div>
       <div class="contrib-card reveal reveal-delay-2">
         <div class="contrib-num">02</div>
@@ -716,7 +716,7 @@
     <div style="height: 2rem;"></div>
     <div class="abstract-text reveal">
       <p>
-        We propose <b>AlphaGRPO</b>, a novel framework that applies Group Relative Policy Optimization (GRPO) to AR-Diffusion Native Unified Multimodal Models (UMMs) to enhance multimodal generation capabilities without relying on external knowledge injection. Our approach unlocks the model's intrinsic potential to perform advanced reasoning tasks: <i>Reasoning Text-to-Image Generation</i>, where the model actively infers implicit user intents, and <i>Self-Reflective Refinement</i>, where it autonomously diagnoses and corrects misalignments in generated outputs.
+        We propose <b>AlphaGRPO</b>, a novel framework that applies Group Relative Policy Optimization (GRPO) to AR-Diffusion Native Unified Multimodal Models (UMMs) to enhance multimodal generation capabilities. Our approach unlocks the model's intrinsic potential to perform advanced reasoning tasks: <i>Reasoning Text-to-Image Generation</i>, where the model actively infers implicit user intents, and <i>Self-Reflective Refinement</i>, where it autonomously diagnoses and corrects misalignments in generated outputs.
       </p>
       <p>
         To address the challenge of providing stable supervision for real-world multimodal generation, we introduce the <b>Decompositional Verifiable Reward (DVReward)</b>. Unlike holistic scalar rewards, DVReward utilizes an LLM to decompose complex user requests into atomic, verifiable semantic and quality questions, which are then evaluated by a general MLLM to provide reliable and interpretable feedback. Extensive experiments demonstrate that AlphaGRPO yields robust improvements across multimodal generation benchmarks, including GenEval, TIIF-Bench, DPG-Bench and WISE, while also achieving significant gains in editing tasks on GEdit without training on editing tasks.
