@@ -412,37 +412,6 @@
     .callout strong { color: #92640A; }
     .callout p { font-size: 0.95rem; color: #5A4A2A; line-height: 1.65; margin: 0; }
 
-    /* ===== DVReward Categories ===== */
-    .cat-section-label {
-      font-size: 0.88rem;
-      color: #1A1A2E;
-      font-weight: 600;
-      margin: 1rem 0 0.4rem;
-    }
-    .cat-section-label:first-of-type { margin-top: 0; }
-    .cat-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-    }
-    .cat-tag {
-      display: inline-block;
-      padding: 0.22rem 0.7rem;
-      border-radius: 999px;
-      font-size: 0.82rem;
-      font-weight: 500;
-    }
-    .cat-tag-sem {
-      background: #EFF3FB;
-      border: 1px solid #D5DEEF;
-      color: #2947C7;
-    }
-    .cat-tag-qua {
-      background: #FFF8EB;
-      border: 1px solid #ECDFB6;
-      color: #8C7028;
-    }
-
     /* ===== Results Tables ===== */
     .results-block { margin-bottom: 2.5rem; }
     .results-block h4 {
@@ -847,37 +816,6 @@
           (2)&nbsp;A pre-trained MLLM <b>verifies</b> each question using confidence scores derived from Yes/No token probabilities;
           (3)&nbsp;The final reward is the <b>geometric mean</b> of semantic and quality scores.
         </p>
-      </div>
-    </div>
-
-    <div class="reveal" style="margin-top: 1.5rem;">
-      <h4 style="font-size: 1.15rem; color: #1A1A2E; margin-bottom: 0.6rem;">DVReward Question Categories</h4>
-      <p style="font-size: 0.92rem; color: #5E5E7A; margin-bottom: 0.7rem; line-height: 1.6;">
-        Each prompt is decomposed into atomic, verifiable questions across <b>10 semantic dimensions</b> and <b>8 perceptual quality aspects</b>. Below are the full category sets used by the decomposer.
-      </p>
-      <p class="cat-section-label">Semantic alignment (10)</p>
-      <div class="cat-tags">
-        <span class="cat-tag cat-tag-sem">Style</span>
-        <span class="cat-tag cat-tag-sem">Environment</span>
-        <span class="cat-tag cat-tag-sem">Viewpoint</span>
-        <span class="cat-tag cat-tag-sem">Existence</span>
-        <span class="cat-tag cat-tag-sem">Count</span>
-        <span class="cat-tag cat-tag-sem">Attribute</span>
-        <span class="cat-tag cat-tag-sem">Action</span>
-        <span class="cat-tag cat-tag-sem">Spatial</span>
-        <span class="cat-tag cat-tag-sem">Text</span>
-        <span class="cat-tag cat-tag-sem">Negative</span>
-      </div>
-      <p class="cat-section-label">Perceptual quality (8)</p>
-      <div class="cat-tags">
-        <span class="cat-tag cat-tag-qua">Geometry</span>
-        <span class="cat-tag cat-tag-qua">Anatomy</span>
-        <span class="cat-tag cat-tag-qua">Texture</span>
-        <span class="cat-tag cat-tag-qua">Coherence</span>
-        <span class="cat-tag cat-tag-qua">Lighting</span>
-        <span class="cat-tag cat-tag-qua">Physics</span>
-        <span class="cat-tag cat-tag-qua">Legibility</span>
-        <span class="cat-tag cat-tag-qua">Aesthetics</span>
       </div>
     </div>
 
