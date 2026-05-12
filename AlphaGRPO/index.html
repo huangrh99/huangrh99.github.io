@@ -18,7 +18,7 @@
   <!-- Open Graph / Twitter Card -->
   <meta property="og:title" content="AlphaGRPO: Unlocking Self-Reflective Multimodal Generation">
   <meta property="og:description" content="A novel GRPO framework for AR-Diffusion Native Unified Multimodal Models with Decompositional Verifiable Reward.">
-  <meta property="og:image" content="https://huangrh99.github.io/AlphaGRPO/static/images/teaser.png">
+  <meta property="og:image" content="https://huangrh99.github.io/AlphaGRPO/static/images/teaser.jpg">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -704,7 +704,7 @@
 <section class="teaser-section">
   <div class="container-wide">
     <div class="reveal">
-      <img src="./static/images/teaser.png" class="teaser-img" width="2684" height="856" alt="Qualitative and quantitative comparisons of AlphaGRPO showing improvements over BAGEL in text-to-image generation and image editing">
+      <img src="./static/images/teaser.jpg" class="teaser-img" width="2684" height="856" alt="Qualitative and quantitative comparisons of AlphaGRPO showing improvements over BAGEL in text-to-image generation and image editing">
       <p class="teaser-caption">
         <b>Teaser overview.</b> AlphaGRPO uses GRPO with DVReward to activate reasoning and self-reflective refinement in native unified multimodal models. The T2I examples show improved composition and inference-time correction of fine-grained attributes, while the editing examples show transfer to GEdit without editing-task training; the radar chart summarizes gains across generation and editing benchmarks.
       </p>
@@ -719,9 +719,8 @@
       <div class="tldr-box">
         <h3>TL;DR</h3>
         <p>
-          AlphaGRPO is the <b>first GRPO framework for AR-Diffusion Native Unified Multimodal Models</b>.
-          It strengthens self-reflective reasoning and generation capabilities,
-          powered by a novel <b>Decompositional Verifiable Reward (DVReward)</b> that provides stable, interpretable supervision from open-source MLLMs.
+          AlphaGRPO applies GRPO to <b>AR-Diffusion Native Unified Multimodal Models</b> without an additional cold-start stage.
+          With <b>Decompositional Verifiable Reward (DVReward)</b>, it supports multimodal generation tasks such as <b>Reasoning T2I</b> and <b>Self-Reflective Refinement</b> through stable, interpretable supervision from open-source MLLMs.
         </p>
       </div>
     </div>
@@ -730,7 +729,7 @@
       <div class="contrib-card reveal reveal-delay-1">
         <div class="contrib-num">01</div>
         <h4>GRPO for Unified Models</h4>
-        <p>First to introduce GRPO training to AR-Diffusion Native Unified Models. By optimizing the model's latent generative and reflective behaviors, we enable <b>Reasoning T2I</b> and <b>Self-Reflective Refinement</b>.</p>
+        <p>First to introduce GRPO training to AR-Diffusion Native Unified Models. By optimizing the model's latent generative and reflective behaviors, AlphaGRPO supports multimodal generation tasks such as <b>Reasoning T2I</b> and <b>Self-Reflective Refinement</b>.</p>
       </div>
       <div class="contrib-card reveal reveal-delay-2">
         <div class="contrib-num">02</div>
@@ -850,20 +849,20 @@
         <h3 class="takeaway-title">Key Experimental Findings</h3>
         <div class="takeaway-grid">
           <div class="takeaway-card">
-            <b>Low-res RL transfers upward.</b>
-            <p>Although AlphaGRPO is optimized at 512px, the learned alignment generalizes to 1024px generation benchmarks.</p>
+            <b>Low-resolution RL generalizes.</b>
+            <p>Although AlphaGRPO is optimized at 512px, it improves 1024px generation results, indicating learned semantic alignment rather than pixel memorization.</p>
           </div>
           <div class="takeaway-card">
-            <b>SRR training improves T2I.</b>
-            <p>Training on self-reflective refinement still yields strong downstream T2I gains, comparable to direct RT2I optimization.</p>
+            <b>SRR transfers beyond refinement.</b>
+            <p>Self-reflective refinement training also improves downstream T2I, matching or surpassing direct RT2I optimization on several metrics.</p>
           </div>
           <div class="takeaway-card">
-            <b>Test-time reflection compounds gains.</b>
-            <p>Inference-time SRR lets the model diagnose and correct one-pass generation errors, further boosting TIIF-Bench and GenEval.</p>
+            <b>Inference-time SRR boosts results.</b>
+            <p>Test-time self-reflection further raises performance, including +4.5 on TIIF-Bench Short and +3.4 on GenEval over one-pass AlphaGRPO.</p>
           </div>
           <div class="takeaway-card">
             <b>Editing transfer emerges.</b>
-            <p>Without editing-task training, AlphaGRPO improves GEdit, showing that generation alignment transfers to instruction-based editing.</p>
+            <p>Without editing-task training, RT2I improves GEdit by +0.33 and SRR reaches +0.52 over BAGEL, showing transfer to instruction-based editing.</p>
           </div>
         </div>
       </div>
@@ -882,17 +881,17 @@
 
     <div class="reveal">
       <h4 class="qual-label">T2I Samples After RT2I Training</h4>
-      <img src="./static/images/appendix_reasoningt2i.png" class="qual-img qual-img-rt2i" loading="lazy" alt="T2I qualitative results for the model trained with reasoning text-to-image RL">
+      <img src="./static/images/appendix_reasoningt2i.jpg" class="qual-img qual-img-rt2i" loading="lazy" alt="T2I qualitative results for the model trained with reasoning text-to-image RL">
     </div>
 
     <div class="qual-spacing reveal">
       <h4 class="qual-label">T2I Samples After SRR Training</h4>
-      <img src="./static/images/appendix_srr.png" class="qual-img" loading="lazy" alt="T2I qualitative results for the model trained with self-reflective refinement RL">
+      <img src="./static/images/appendix_srr.jpg" class="qual-img" loading="lazy" alt="T2I qualitative results for the model trained with self-reflective refinement RL">
     </div>
 
     <div class="qual-spacing reveal">
       <h4 class="qual-label">Image Editing Results</h4>
-      <img src="./static/images/appendix_editing.png" class="qual-img" loading="lazy" alt="Qualitative image editing results for AlphaGRPO">
+      <img src="./static/images/appendix_editing.jpg" class="qual-img" loading="lazy" alt="Qualitative image editing results for AlphaGRPO">
     </div>
   </div>
 </section>
