@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="SpectraReward: pretrained MLLMs as zero-shot reward models for text-to-image generation.">
+  <meta name="keywords" content="SpectraReward, Self-SpectraReward, text-to-image generation, reinforcement learning, MLLM reward, prompt likelihood, self reward">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SpectraReward</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="icon" href="./static/images/teaser.png" type="image/png">
+
+  <meta property="og:title" content="SpectraReward: Read It Back">
+  <meta property="og:description" content="Pretrained MLLMs are zero-shot reward models for text-to-image generation.">
+  <meta property="og:image" content="https://huangrh99.github.io/SpectraReward/static/images/teaser.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      color: #151827;
+      background: #fbfaf5;
+      line-height: 1.7;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    img { max-width: 100%; height: auto; display: block; }
+    a { color: #3657d9; text-decoration: none; transition: color 0.2s, border-color 0.2s, background 0.2s; }
+    a:hover { color: #b8731a; }
+    h1, h2, h3, h4 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 650;
+      line-height: 1.15;
+    }
+    .container { max-width: 1060px; margin: 0 auto; padding: 0 clamp(24px, 5vw, 80px); }
+    .container-wide { max-width: 1220px; margin: 0 auto; padding: 0 clamp(24px, 5vw, 80px); }
+    .row { display: flex; gap: 2rem; flex-wrap: wrap; }
+    .col-half { flex: 1; min-width: 280px; }
+    .accent { color: #c38226; }
+
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(31, 33, 54, 0.08);
+      background: rgba(251, 250, 245, 0.9);
+      backdrop-filter: blur(18px);
+    }
+    .top-nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 12px clamp(22px, 5vw, 70px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .top-nav-brand {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #151827;
+      letter-spacing: 0.01em;
+    }
+    .top-nav-links { display: flex; gap: 1.2rem; flex-wrap: wrap; justify-content: flex-end; }
+    .top-nav-links a {
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #5c627d;
+    }
+    .top-nav-links a:hover { color: #c38226; }
+
+    .hero {
+      position: relative;
+      padding: 82px 24px 54px;
+      border-bottom: 1px solid #e8e4da;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(195, 130, 38, 0.16), transparent 34%),
+        radial-gradient(circle at 85% 12%, rgba(54, 87, 217, 0.13), transparent 33%),
+        linear-gradient(180deg, #fbfaf5 0%, #f5f1e7 100%);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.38;
+      background-image:
+        linear-gradient(rgba(21, 24, 39, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(21, 24, 39, 0.045) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(180deg, #000, transparent 82%);
+    }
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 940px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(1.65rem, 3.6vw, 2.5rem);
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      color: #151827;
+      max-width: 920px;
+      margin: 0 auto 1.7rem;
+    }
+    .hero-authors {
+      display: flex;
+      justify-content: center;
+      gap: 7px 18px;
+      flex-wrap: wrap;
+      color: #20243a;
+      font-size: 1.06rem;
+      margin-bottom: 0.7rem;
+    }
+    .hero-authors .author { white-space: nowrap; }
+    .hero-authors sup { color: #c38226; font-weight: 600; font-size: 0.72em; padding-left: 1px; }
+    .hero-affils {
+      display: flex;
+      justify-content: center;
+      gap: 6px 22px;
+      flex-wrap: wrap;
+      color: #646b87;
+      font-size: 0.92rem;
+      margin-bottom: 2rem;
+    }
+    .hero-affils span sup { color: #c38226; font-weight: 600; padding-right: 2px; }
+    .hero-links {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .hero-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: 100px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border: 1px solid #d9d7cf;
+      color: #151827;
+      background: rgba(255,255,255,0.82);
+      box-shadow: 0 7px 24px rgba(21, 24, 39, 0.08);
+    }
+    .hero-btn:hover { color: #2947c7; border-color: rgba(54,87,217,0.35); background: #f4f6ff; }
+
+    .teaser-section { padding: 4rem 0 3rem; background: #fff; }
+    .teaser-card {
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 16px 54px rgba(21, 24, 39, 0.09);
+      border: 1px solid rgba(21, 24, 39, 0.08);
+      overflow: hidden;
+    }
+    .fig-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid rgba(21, 24, 39, 0.08);
+      box-shadow: 0 12px 42px rgba(21, 24, 39, 0.08);
+      margin: 0 auto;
+    }
+    .fig-img.plain { border: 0; box-shadow: none; background: transparent; }
+    .fig-img.narrow { max-width: 640px; }
+    .fig-img.radar { max-width: 520px; }
+    .fig-img.med { max-width: 840px; }
+    .fig-img.tbl-sm { max-width: 700px; }
+    .caption {
+      font-size: 0.9rem;
+      color: #616783;
+      font-style: italic;
+      margin-top: 1rem;
+      text-align: left;
+    }
+    .caption b { color: #151827; font-style: normal; }
+
+    .section { padding: 5rem 0; }
+    .section-alt { background: #f3f5fb; }
+    .section-title {
+      font-size: 2.55rem;
+      text-align: left;
+      margin-bottom: 0.55rem;
+      color: #151827;
+    }
+    .accent-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #c38226;
+      border-radius: 50%;
+      margin-left: 5px;
+      vertical-align: super;
+    }
+    .section-subtitle {
+      color: #656c88;
+      max-width: 780px;
+      font-size: 1.02rem;
+      margin-bottom: 2rem;
+    }
+    .abstract-text p {
+      font-size: 1.05rem;
+      color: #323853;
+      text-align: justify;
+      margin-bottom: 1.15rem;
+    }
+    .tldr-box {
+      margin-top: 2rem;
+      border: 1px solid rgba(195, 130, 38, 0.28);
+      background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,246,226,0.72));
+      border-radius: 18px;
+      padding: 1.5rem 1.65rem;
+      box-shadow: 0 8px 34px rgba(195, 130, 38, 0.08);
+    }
+    .tldr-box h3 { font-size: 1.5rem; margin-bottom: 0.45rem; color: #a46416; }
+
+    .contrib-grid, .takeaway-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.1rem;
+      margin-top: 2rem;
+    }
+    .contrib-card, .takeaway-card, .finding-card {
+      background: #fff;
+      border: 1px solid rgba(21, 24, 39, 0.08);
+      border-radius: 18px;
+      padding: 1.4rem;
+      box-shadow: 0 9px 34px rgba(21, 24, 39, 0.055);
+    }
+    .contrib-num {
+      font-size: 0.82rem;
+      color: #c38226;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      margin-bottom: 0.8rem;
+    }
+    .contrib-card h4, .takeaway-card b, .finding-card h4 {
+      display: block;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: #151827;
+      font-size: 1.28rem;
+      line-height: 1.2;
+      margin-bottom: 0.45rem;
+    }
+    .contrib-card p, .takeaway-card p, .finding-card p {
+      color: #535a76;
+      font-size: 0.94rem;
+      line-height: 1.65;
+    }
+
+    .method-figure, .result-figure img, .qual-img {
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid rgba(21, 24, 39, 0.08);
+      box-shadow: 0 12px 42px rgba(21, 24, 39, 0.08);
+      margin: 0 auto;
+    }
+    .method-caption {
+      max-width: 920px;
+      margin: 1rem auto 2.3rem;
+      color: #5c637f;
+      font-size: 0.92rem;
+      font-style: italic;
+    }
+    .callout {
+      border-left: 4px solid #c38226;
+      background: #fffaf0;
+      padding: 1.2rem 1.35rem;
+      border-radius: 0 14px 14px 0;
+      margin-top: 1.8rem;
+      color: #393f59;
+    }
+
+    .equation-card {
+      font-family: 'Outfit', sans-serif;
+      text-align: center;
+      color: #151827;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(242,245,255,0.9));
+      border: 1px solid rgba(54, 87, 217, 0.16);
+      border-radius: 20px;
+      padding: 2.2rem 1.4rem 1.8rem;
+      margin: 1.6rem 0 2.3rem;
+      box-shadow: 0 16px 45px rgba(54, 87, 217, 0.08);
+      overflow-x: auto;
+    }
+    .equation-card mjx-container { font-size: clamp(1.15rem, 2.6vw, 1.7rem) !important; margin: 0 auto !important; }
+    .equation-card .small {
+      display: block;
+      font-size: 0.88rem;
+      color: #656c88;
+      margin-top: 1.1rem;
+      font-style: normal;
+    }
+
+    .results-block { display: grid; gap: 2rem; }
+    .result-figure {
+      background: #fff;
+      border: 1px solid rgba(21, 24, 39, 0.08);
+      border-radius: 18px;
+      padding: 1.1rem;
+      box-shadow: 0 10px 34px rgba(21, 24, 39, 0.055);
+    }
+    .result-figure figcaption {
+      color: #5d6480;
+      font-size: 0.9rem;
+      margin-top: 0.9rem;
+      font-style: italic;
+    }
+    .result-figure figcaption b { color: #151827; font-style: normal; }
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .metric {
+      text-align: center;
+      background: #151827;
+      color: #fff;
+      border-radius: 18px;
+      padding: 1.25rem 0.9rem;
+      box-shadow: 0 13px 36px rgba(21,24,39,0.18);
+    }
+    .metric strong {
+      display: block;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: #f1c779;
+      font-size: 2.1rem;
+      line-height: 1;
+      margin-bottom: 0.35rem;
+    }
+    .metric span { font-size: 0.78rem; color: #d9dce8; }
+
+    .qual-spacing { margin-top: 2.5rem; }
+    .qual-label {
+      font-family: 'Outfit', sans-serif;
+      color: #c38226;
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      margin-bottom: 0.8rem;
+    }
+
+    .bibtex-section {
+      background: #151827;
+      color: #fff;
+      padding: 4rem 0;
+    }
+    .bibtex-section h2 {
+      font-size: 2.4rem;
+      margin-bottom: 1.4rem;
+    }
+    .bibtex-block {
+      position: relative;
+      background: #0f1220;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 1.3rem;
+      overflow-x: auto;
+    }
+    pre { color: #e7eaf6; font-size: 0.86rem; line-height: 1.55; }
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+    }
+    .site-footer {
+      background: #0f1220;
+      color: #aeb4ce;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 1.4rem 0;
+      font-size: 0.88rem;
+    }
+
+    .hero-btn-disabled { color: #9a9eb2; border-color: #e2e0d8; background: rgba(255,255,255,0.55); cursor: default; box-shadow: none; }
+    .hero-btn-disabled:hover { color: #9a9eb2; border-color: #e2e0d8; background: rgba(255,255,255,0.55); }
+    .hero-btn-disabled .soon {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: #b8731a; background: rgba(195,130,38,0.14); border-radius: 100px; padding: 1px 7px; margin-left: 2px;
+    }
+
+    .teaser-a { max-width: 540px; }
+    .teaser-section .caption { text-align: center; max-width: 700px; margin-left: auto; margin-right: auto; }
+
+    .carousel { position: relative; }
+    .carousel-viewport { position: relative; overflow: hidden; border-radius: 14px; }
+    .carousel-track { display: flex; transition: transform 0.45s cubic-bezier(.4,0,.2,1); }
+    .cslide { flex: 0 0 100%; min-width: 100%; margin: 0; }
+    .cslide-media {
+      background: #fff; border: 1px solid rgba(21,24,39,0.08); border-radius: 14px;
+      box-shadow: 0 12px 42px rgba(21,24,39,0.08); padding: 0.9rem; overflow: hidden;
+    }
+    .cslide-media img { width: 100%; height: auto; display: block; }
+    .cslide-cap { margin: 1rem auto 0; max-width: 820px; text-align: center; font-size: 0.92rem; color: #5c637f; font-style: italic; }
+    .cslide-cap b { color: #151827; font-style: normal; }
+    .carousel-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(21,24,39,0.12);
+      background: rgba(255,255,255,0.92); color: #151827; font-size: 1.5rem; line-height: 1;
+      cursor: pointer; z-index: 3; box-shadow: 0 6px 20px rgba(21,24,39,0.12);
+      transition: background .2s, color .2s; display: flex; align-items: center; justify-content: center;
+    }
+    .carousel-arrow:hover { background: #151827; color: #fff; }
+    .carousel-arrow.prev { left: 14px; }
+    .carousel-arrow.next { right: 14px; }
+    .carousel-dots { display: flex; justify-content: center; gap: 9px; margin-top: 1.1rem; }
+    .carousel-dots button {
+      width: 9px; height: 9px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+      background: rgba(21,24,39,0.18); transition: background .2s, transform .2s;
+    }
+    .carousel-dots button.active { background: #c38226; transform: scale(1.3); }
+
+    .sub-h { font-size: 1.7rem; margin: 2.6rem 0 0.5rem; color: #151827; }
+    .cmp-intro { color: #535a76; font-size: 0.98rem; max-width: 840px; margin-bottom: 1.4rem; }
+    .cmp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.9rem; }
+    .cmp-card {
+      background: #fff; border: 1px solid rgba(21, 24, 39, 0.08); border-radius: 14px;
+      padding: 1.15rem 1.25rem; box-shadow: 0 8px 28px rgba(21, 24, 39, 0.05);
+    }
+    .cmp-card p { color: #535a76; font-size: 0.92rem; line-height: 1.6; }
+    .cmp-tag {
+      display: inline-block; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em;
+      padding: 3px 11px; border-radius: 100px; margin-bottom: 0.6rem;
+    }
+    .cmp-tag.bad { color: #b23b3b; background: rgba(178, 59, 59, 0.10); }
+    .cmp-tag.mid { color: #9a6a16; background: rgba(195, 130, 38, 0.13); }
+    .cmp-tag.good { color: #1f7a4d; background: rgba(31, 122, 77, 0.12); }
+    .cmp-table {
+      width: 100%; border-collapse: collapse; font-size: 0.92rem; margin-top: 0.4rem;
+      background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 8px 28px rgba(21, 24, 39, 0.05);
+    }
+    .cmp-table caption { caption-side: bottom; color: #5c637f; font-size: 0.85rem; font-style: italic; padding: 0.75rem 0.3rem 0; text-align: left; }
+    .cmp-table th, .cmp-table td { padding: 0.7rem 1rem; text-align: center; border-bottom: 1px solid rgba(21, 24, 39, 0.07); }
+    .cmp-table th:first-child, .cmp-table td:first-child { text-align: left; }
+    .cmp-table thead th { background: #151827; color: #fff; font-weight: 600; }
+    .cmp-table tbody tr.hl { background: #eef3ff; }
+    .cmp-table tbody tr.hl td { color: #1f2a52; font-weight: 700; }
+
+    @media (max-width: 820px) {
+      .top-nav-inner { align-items: flex-start; flex-direction: column; }
+      .top-nav-links { gap: 0.8rem; }
+      .contrib-grid, .takeaway-grid, .metric-strip, .cmp-grid { grid-template-columns: 1fr; }
+      .section { padding: 3.5rem 0; }
+      .hero { padding-top: 58px; }
+      .cmp-table { font-size: 0.82rem; }
+      .cmp-table th, .cmp-table td { padding: 0.55rem 0.5rem; }
+    }
+  </style>
+</head>
+
+<body>
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <a href="#top" class="top-nav-brand">Spectra<span class="accent">Reward</span></a>
+    <div class="top-nav-links">
+      <a href="#abstract">Abstract</a>
+      <a href="#method">Method</a>
+      <a href="#analysis">Analysis</a>
+      <a href="#results">Results</a>
+      <a href="#reward-study">Reward Study</a>
+      <a href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero" id="top">
+  <div class="hero-content">
+    <h1 class="hero-title">Read It Back: Pretrained MLLMs Are Zero-Shot Reward Models for Text-to-Image Generation</h1>
+    <div class="hero-authors">
+      <span class="author">Runhui Huang<sup>1</sup></span>
+      <span class="author">Qihui Zhang<sup>3</sup></span>
+      <span class="author">Zhe Liu<sup>1</sup></span>
+      <span class="author">Yu Gao<sup>2</sup></span>
+      <span class="author">Jie Wu<sup>2</sup></span>
+      <span class="author">Hengshuang Zhao<sup>1,&dagger;</sup></span>
+    </div>
+    <div class="hero-affils">
+      <span><sup>1</sup>The University of Hong Kong</span>
+      <span><sup>2</sup>ByteDance Seed</span>
+      <span><sup>3</sup>Peking University</span>
+    </div>
+    <div class="hero-links">
+      <span class="hero-btn hero-btn-disabled" title="arXiv link coming soon"><i class="ai ai-arxiv"></i> arXiv <span class="soon">soon</span></span>
+      <a class="hero-btn" href="https://github.com/huangrh99/AlphaGRPO" target="_blank" rel="noopener"><i class="fab fa-github"></i> Code</a>
+      <a class="hero-btn" href="#bibtex"><i class="ai ai-google-scholar"></i> BibTeX</a>
+    </div>
+  </div>
+</section>
+
+<section class="teaser-section">
+  <div class="container-wide">
+    <div class="carousel" id="mainCarousel">
+      <div class="carousel-viewport">
+        <div class="carousel-track">
+          <figure class="cslide">
+            <div class="cslide-media"><img src="./static/images/teaser_ab.jpg" alt="(a) SpectraReward reads the prompt back from the generated image to form a semantic spectrum; (b) generation quality improves over RL training"></div>
+            <figcaption class="cslide-cap"><b>(a)</b> A pretrained MLLM reads the generated image back into the prompt, forming a <i>semantic spectrum</i> whose average is the training-free reward. <b>(b)</b> During RL training, the reward rises together with visible improvements in complex scene generation.</figcaption>
+          </figure>
+          <figure class="cslide">
+            <div class="cslide-media"><img src="./static/images/qual_03.png" loading="lazy" alt="Qualitative comparison of BAGEL and Self-SpectraReward"></div>
+            <figcaption class="cslide-cap"><b>Qualitative comparison.</b> Left: prompt. Middle: BAGEL baseline. Right: Self-SpectraReward (ours).</figcaption>
+          </figure>
+          <figure class="cslide">
+            <div class="cslide-media"><img src="./static/images/qual_02.png" loading="lazy" alt="Qualitative comparison of BAGEL and Self-SpectraReward"></div>
+            <figcaption class="cslide-cap"><b>Qualitative comparison.</b> Left: prompt. Middle: BAGEL baseline. Right: Self-SpectraReward (ours).</figcaption>
+          </figure>
+          <figure class="cslide">
+            <div class="cslide-media"><img src="./static/images/qual_07.png" loading="lazy" alt="Qualitative comparison of BAGEL and Self-SpectraReward"></div>
+            <figcaption class="cslide-cap"><b>Qualitative comparison.</b> Left: prompt. Middle: BAGEL baseline. Right: Self-SpectraReward (ours).</figcaption>
+          </figure>
+          <figure class="cslide">
+            <div class="cslide-media"><img src="./static/images/qual_05.png" loading="lazy" alt="Qualitative comparison of BAGEL and Self-SpectraReward"></div>
+            <figcaption class="cslide-cap"><b>Qualitative comparison.</b> Left: prompt. Middle: BAGEL baseline. Right: Self-SpectraReward (ours).</figcaption>
+          </figure>
+          <figure class="cslide">
+            <div class="cslide-media"><img src="./static/images/qual_04.png" loading="lazy" alt="Qualitative comparison of BAGEL and Self-SpectraReward"></div>
+            <figcaption class="cslide-cap"><b>Qualitative comparison.</b> Left: prompt. Middle: BAGEL baseline. Right: Self-SpectraReward (ours).</figcaption>
+          </figure>
+          <figure class="cslide">
+            <div class="cslide-media"><img src="./static/images/qual_06.png" loading="lazy" alt="Qualitative comparison of BAGEL and Self-SpectraReward"></div>
+            <figcaption class="cslide-cap"><b>Qualitative comparison.</b> Left: prompt. Middle: BAGEL baseline. Right: Self-SpectraReward (ours).</figcaption>
+          </figure>
+          <figure class="cslide">
+            <div class="cslide-media"><img src="./static/images/qual_01.png" loading="lazy" alt="Qualitative comparison of BAGEL and Self-SpectraReward"></div>
+            <figcaption class="cslide-cap"><b>Qualitative comparison.</b> Left: prompt. Middle: BAGEL baseline. Right: Self-SpectraReward (ours).</figcaption>
+          </figure>
+          <figure class="cslide">
+            <div class="cslide-media"><img src="./static/images/qual_08.png" loading="lazy" alt="Qualitative comparison of BAGEL and Self-SpectraReward"></div>
+            <figcaption class="cslide-cap"><b>Qualitative comparison.</b> Left: prompt. Middle: BAGEL baseline. Right: Self-SpectraReward (ours).</figcaption>
+          </figure>
+        </div>
+      </div>
+      <button class="carousel-arrow prev" aria-label="Previous">&#8249;</button>
+      <button class="carousel-arrow next" aria-label="Next">&#8250;</button>
+      <div class="carousel-dots"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt" id="abstract">
+  <div class="container">
+    <h2 class="section-title">Abstract<span class="accent-dot"></span></h2>
+    <div class="abstract-text">
+      <p>
+        We propose <b>SpectraReward</b>, a training-free reward function that turns pretrained MLLMs into off-the-shelf reward models for image-generation reinforcement learning. Instead of asking the MLLM to judge a generated image or answer decomposed verification questions, SpectraReward measures how well the original prompt can be recovered from the generated image through a single image-conditioned, teacher-forced forward pass.
+      </p>
+      <p>
+        We use the average image-conditioned prompt log-likelihood as the reward, directly reusing the MLLM's pretrained image-text alignment ability without preference labels or reward-model fine-tuning. We further introduce <b>Self-SpectraReward</b>, a special case for unified multimodal models where the policy's own understanding branch serves as the reward model for its generation branch.
+      </p>
+    </div>
+    <div class="contrib-grid">
+      <div class="contrib-card">
+        <div class="contrib-num">01</div>
+        <h4>Training-Free Reward</h4>
+        <p>Compute image-conditioned prompt log-likelihood with one teacher-forced MLLM forward pass. No preference labels, no reward-model fine-tuning, and no question decomposition.</p>
+      </div>
+      <div class="contrib-card">
+        <div class="contrib-num">02</div>
+        <h4>Self-Reward for UMMs</h4>
+        <p>For BAGEL-like unified multimodal models, the policy's own understanding branch scores samples from the generation branch, yielding a naturally aligned self-reward without any external model.</p>
+      </div>
+      <div class="contrib-card">
+        <div class="contrib-num">03</div>
+        <h4>Scale Is Not Everything</h4>
+        <p>Across MLLM families and sizes, reward-policy alignment can rival or surpass raw reward-model scale; the policy's own understanding branch can outperform larger external MLLMs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="method">
+  <div class="container">
+    <h2 class="section-title">Method<span class="accent-dot"></span></h2>
+    <p class="cmp-intro" style="margin-bottom:1.5rem;">
+      SpectraReward asks a simple inverse question: how well can the generated image be read back into its prompt? We condition a frozen MLLM on the generated image <i>y</i>, run a single teacher-forced pass over the prompt tokens <i>x</i>, and use the mean prompt-token log-likelihood as the reward &mdash; the most direct signal from MLLM pretraining.
+    </p>
+    <div class="equation-card">
+      \[ R_{\mathcal{M}}(x, y) = \frac{1}{T-1} \sum_{t=1}^{T-1} \log p_{\mathcal{M}}\!\left(x_{t+1} \mid x_{\le t},\, y\right) \]
+      <span class="small">Prompt <span style="font-style:italic">x</span> is read back from the generated image <span style="font-style:italic">y</span>: a higher mean prompt log-likelihood means the image better supports the prompt.</span>
+    </div>
+
+    <img class="fig-img" src="./static/images/method.png" alt="Comparison of scalar scoring, VQA decomposition, SpectraReward, and Self-SpectraReward">
+    <p class="method-caption">
+      <b>SpectraReward and Self-SpectraReward.</b> SpectraReward computes image-conditioned prompt likelihood through a single teacher-forced pass. Self-SpectraReward instantiates the same reward inside a unified multimodal model by using the policy's own understanding branch.
+    </p>
+
+    <h3 class="sub-h">Comparing MLLM-based reward functions</h3>
+    <p class="cmp-intro">
+      Pretrained MLLMs can be turned into rewards in several ways. Prior approaches either ask the MLLM to <i>judge</i> an image or to <i>answer decomposed questions</i>; SpectraReward instead reads the prompt back from the image, reusing the MLLM's own image-conditioned language-modeling objective.
+    </p>
+    <div class="cmp-grid">
+      <div class="cmp-card">
+        <span class="cmp-tag bad">(a) Scalar scoring</span>
+        <p>Prompt the MLLM to rate image-text alignment on a 1&ndash;5 scale. The reward is discrete and highly sensitive to judge calibration &mdash; it <b>lowers GenEval by 6.3</b> versus the baseline.</p>
+      </div>
+      <div class="cmp-card">
+        <span class="cmp-tag mid">(b) VQA decomposition</span>
+        <p>Decompose the prompt into atomic yes/no questions and aggregate <i>P</i>(yes) (e.g. AlphaGRPO's DVReward). Continuous, but needs a two-stage pipeline and a decomposition bottleneck, and gains stay marginal.</p>
+      </div>
+      <div class="cmp-card">
+        <span class="cmp-tag good">(c) SpectraReward</span>
+        <p>Use the image-conditioned prompt log-likelihood from a single teacher-forced pass. A dense, training-free signal that works across MLLM families and is best on every metric.</p>
+      </div>
+      <div class="cmp-card">
+        <span class="cmp-tag good">(d) Self-SpectraReward</span>
+        <p>Instantiate the same reward inside a UMM using its own understanding branch &mdash; no external reward model, and reward-policy alignment by construction.</p>
+      </div>
+    </div>
+    <table class="cmp-table">
+      <caption>Reward-function ablation on BAGEL with AWM. The prompt-likelihood reward used by SpectraReward wins on every metric.</caption>
+      <thead>
+        <tr><th>Reward function</th><th>GenEval &uarr;</th><th>TIIF-Short &uarr;</th><th>TIIF-Long &uarr;</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>BAGEL (no RL)</td><td>84.0</td><td>75.2</td><td>78.6</td></tr>
+        <tr><td>Scalar Scoring (1&ndash;5)</td><td>77.7</td><td>67.5</td><td>76.0</td></tr>
+        <tr><td>VQA-Score (<i>P</i>(yes))</td><td>83.1</td><td>77.4</td><td>78.9</td></tr>
+        <tr class="hl"><td>Prompt Likelihood (ours)</td><td>89.5</td><td>85.1</td><td>84.3</td></tr>
+      </tbody>
+    </table>
+
+    <div class="row" style="margin-top:2.4rem;">
+      <div class="col-half">
+        <h4 style="font-size:1.35rem;margin-bottom:0.7rem;">Semantic Spectrum</h4>
+        <p style="color:#4f5672;font-size:0.96rem;text-align:justify;">
+          Token-level prompt likelihoods form a semantic spectrum of an image-text pair. Drops in token likelihood localize which prompt requirements are weakly supported by the generated image, while the sequence average gives a stable scalar reward.
+        </p>
+      </div>
+      <div class="col-half">
+        <h4 style="font-size:1.35rem;margin-bottom:0.7rem;">Reward-Policy Alignment</h4>
+        <p style="color:#4f5672;font-size:0.96rem;text-align:justify;">
+          In unified multimodal models, the understanding and generation branches share tokenizer, vision encoder, and pretraining distribution. This makes the policy's own understanding branch a calibrated reward source for its generated-image distribution.
+        </p>
+      </div>
+    </div>
+    <div class="callout">
+      <b>No preference labels.</b> SpectraReward reuses pretrained image-text alignment directly. It does not train a reward model, sample a judge response, or require an auxiliary question-decomposition pipeline.
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt" id="analysis">
+  <div class="container">
+    <h2 class="section-title">Analysis<span class="accent-dot"></span></h2>
+    <p class="section-subtitle">
+      Before benchmarking downstream RL, we verify that the prompt-likelihood signal is a reliable reward: it localizes semantic errors and ranks rollouts within a prompt group.
+    </p>
+    <figure class="result-figure" style="text-align:center;">
+      <img class="fig-img med" src="./static/images/per_token_compare_reward.png" alt="Token-level semantic sensitivity of SpectraReward">
+      <figcaption>
+        <b>Token-level sensitivity.</b> When a generated image misses a counted object or changes an object identity, the likelihood drop concentrates on the corresponding semantic token.
+      </figcaption>
+    </figure>
+    <figure class="result-figure" style="text-align:center; margin-top:1.6rem;">
+      <img class="fig-img med" src="./static/images/reward_ranking.png" alt="Reward ranking examples for SpectraReward">
+      <figcaption>
+        <b>Reward ranking reliability.</b> SpectraReward ranks images in the same prompt group according to prompt fidelity, which is exactly the signal used by group-relative RL.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" id="results">
+  <div class="container">
+    <h2 class="section-title">Main Results<span class="accent-dot"></span></h2>
+    <p class="section-subtitle">
+      SpectraReward is evaluated across text-to-image backbones, RL algorithms, reward MLLM families, and out-of-distribution benchmarks.
+    </p>
+    <div class="metric-strip">
+      <div class="metric"><strong>+10.0</strong><span>TIIF-Short (SpectraReward vs BAGEL)</span></div>
+      <div class="metric"><strong>+5.5</strong><span>GenEval (Self-SpectraReward vs BAGEL)</span></div>
+      <div class="metric"><strong>9</strong><span>reward MLLM backbones</span></div>
+      <div class="metric"><strong>5</strong><span>OOD T2I benchmarks</span></div>
+    </div>
+    <figure class="result-figure" style="text-align:center;">
+      <img class="fig-img" src="./static/images/main_result.png" alt="Main results table comparing SpectraReward and Self-SpectraReward against SD3 Medium, FLUX.1 dev, Show-o, JanusPro, BAGEL, and AlphaGRPO across TIIF-Bench, WISE, DPG-Bench, GenEval, and GenEval2 at 512 and 1024 resolution">
+      <figcaption>
+        <b>Main results.</b> Both SpectraReward and Self-SpectraReward consistently improve the BAGEL baseline and outperform AlphaGRPO across TIIF-Bench, DPG-Bench, GenEval, GenEval2, and WISE, at both 512 and 1024 inference resolution.
+      </figcaption>
+    </figure>
+    <figure class="result-figure" style="text-align:center;">
+      <img class="fig-img radar" src="./static/images/main_result_radar.png" alt="Radar comparison of SpectraReward and Self-SpectraReward across benchmarks">
+      <figcaption>
+        <b>Generalization across benchmarks.</b> SpectraReward and Self-SpectraReward consistently improve BAGEL across GenEval, TIIF-Bench, DPG-Bench, GenEval2, and WISE.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section section-alt" id="reward-study">
+  <div class="container">
+    <h2 class="section-title">Reward Model Study<span class="accent-dot"></span></h2>
+    <p class="section-subtitle">
+      Which MLLM should serve as the reward model, and how does it interact with the RL algorithm?
+    </p>
+
+    <h3 class="sub-h">Effect of the reward MLLM backbone</h3>
+    <p class="cmp-intro">
+      SpectraReward works with diverse off-the-shelf MLLMs. On both SD3.5-M and BAGEL, and across the Gemma3, InternVL3.5, and Qwen3-VL families, it consistently improves the baseline &mdash; the prompt-likelihood reward is architecture-agnostic.
+    </p>
+    <figure class="result-figure" style="text-align:center;">
+      <img class="fig-img tbl-sm" src="./static/images/results_different_mllm.png" alt="Table: effect of different reward MLLM backbones (SD3.5-M and BAGEL with Gemma3, InternVL3.5, Qwen3-VL, and BAGEL self-reward) on GenEval and TIIF-Bench">
+      <figcaption>
+        <b>Effect of the reward MLLM backbone.</b> SpectraReward improves the baseline across reward MLLM families and scales; <b>bold</b> marks the best and <u>underline</u> the second best. BAGEL's own branch (Self-SpectraReward) reaches the top GenEval.
+      </figcaption>
+    </figure>
+    <figure class="result-figure" style="text-align:center; margin-top:0.6rem;">
+      <img class="fig-img narrow" src="./static/images/reward_mllm_geneval.png" alt="GenEval versus reward MLLM scale, showing non-monotonic external scaling and Self-SpectraReward on top">
+      <figcaption>
+        <b>Scale is not all you need.</b> GenEval against reward-MLLM scale: external gains are non-monotonic, while Self-SpectraReward (BAGEL's own understanding branch) tops every external MLLM.
+      </figcaption>
+    </figure>
+    <div class="row" style="margin-top:1.4rem;">
+      <div class="col-half">
+        <div class="finding-card">
+          <h4>Alignment can rival scale</h4>
+          <p>Self-SpectraReward reaches the best GenEval (89.5), matching the strongest 30B-class external reward and surpassing the 30&times; larger Qwen3-VL-235B-A22B. Reward quality is not determined by scale alone.</p>
+        </div>
+      </div>
+      <div class="col-half">
+        <div class="finding-card">
+          <h4>Bigger is non-monotonic; pretraining helps</h4>
+          <p>Within Qwen3-VL, 8B&rarr;30B improves every metric but 235B drops, so a ~30B MLLM already unlocks most of the benefit. And Gemma3-12B-Pretrain beats its Instruct counterpart, since captioning-style pretraining better matches SpectraReward's objective.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sub-h">RL algorithm &amp; reward model</h3>
+    <p class="cmp-intro">
+      Holding the reward fixed to Self-SpectraReward, AWM is the most effective optimizer over FlowGRPO and DiffusionNFT. Under comparable RL training, Self-SpectraReward also outperforms prior preference-based and MLLM-derived rewards &mdash; HPSv3, UnifiedReward, VIEScore, and AlphaGRPO's DVReward.
+    </p>
+    <figure class="result-figure" style="text-align:center;">
+      <img class="fig-img tbl-sm" src="./static/images/results_different_reward_model.png" alt="Table: comparison of RL algorithms (AlphaGRPO, AWM, FlowGRPO, DiffusionNFT) and reward models (HPSv3, UnifiedReward, VIEScore, DVReward, Self-SpectraReward) on GenEval and TIIF-Bench">
+      <figcaption>
+        <b>RL algorithm and reward model.</b> AWM + Self-SpectraReward achieves the best downstream performance; <b>bold</b> marks the best result.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="bibtex-section" id="bibtex">
+  <div class="container">
+    <h2>BibTeX</h2>
+    <div class="bibtex-block">
+      <button class="copy-btn" onclick="copyBib()" aria-label="Copy BibTeX">Copy</button>
+      <pre><code id="bibtex-code">@article{huang2026spectrareward,
+  title={Read It Back: Pretrained MLLMs Are Zero-Shot Reward Models for Text-to-Image Generation},
+  author={Huang, Runhui and Zhang, Qihui and Liu, Zhe and Gao, Yu and Wu, Jie and Zhao, Hengshuang},
+  journal={arXiv preprint arXiv:XXXX.XXXXX},
+  year={2026}
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    &copy; 2026 SpectraReward Authors.
+  </div>
+</footer>
+
+<script src="./static/js/fontawesome.all.min.js" defer></script>
+<script>
+function copyBib() {
+  const code = document.getElementById('bibtex-code').textContent;
+  const btn = document.querySelector('.copy-btn');
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+document.querySelectorAll('.carousel').forEach(function (root) {
+  const track = root.querySelector('.carousel-track');
+  const slides = Array.from(root.querySelectorAll('.cslide'));
+  const dotsWrap = root.querySelector('.carousel-dots');
+  if (!track || !slides.length || !dotsWrap) return;
+  let idx = 0;
+  slides.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    b.addEventListener('click', () => go(i));
+    dotsWrap.appendChild(b);
+  });
+  const dots = Array.from(dotsWrap.children);
+  function go(i) {
+    idx = (i + slides.length) % slides.length;
+    track.style.transform = 'translateX(' + (-idx * 100) + '%)';
+    dots.forEach((d, j) => d.classList.toggle('active', j === idx));
+  }
+  const prev = root.querySelector('.prev');
+  const next = root.querySelector('.next');
+  if (prev) prev.addEventListener('click', () => go(idx - 1));
+  if (next) next.addEventListener('click', () => go(idx + 1));
+  let sx = null;
+  root.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+  root.addEventListener('touchend', (e) => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 40) go(dx < 0 ? idx + 1 : idx - 1);
+    sx = null;
+  }, { passive: true });
+  go(0);
+});
+</script>
+</body>
+</html>
