@@ -1,0 +1,4 @@
+url: "https://huangrh99.github.io"
+
+plugins:
+  - jekyll-redirect-from
