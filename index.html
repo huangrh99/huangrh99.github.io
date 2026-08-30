@@ -22,6 +22,13 @@
         <div class="home">
 
             <div class="mini-intro">
+                <nav class="profile-nav" aria-label="Page sections">
+                    <a href="#huangrh9">About</a>
+                    <a href="#news">News</a>
+                    <a href="#publications">Publications</a>
+                    <a href="#professional">Service</a>
+                </nav>
+
                 <img class="avatar" src="./index_files/huangrunhui.jpg" alt="huangrh9-photo">
 
                 <h1 id="huangrh9">Runhui Huang <span style="font-family:STFangsong">(黄润辉)</span></h1>
@@ -41,75 +48,107 @@
                         <li>Reinforcement Learning for Multimodal Models</li>
                     </ul>
 
-                    <!--
                     <h3 id="news">News</h3>
-                      <ul>
-                        <li><small> <span style="color:#B08519">[Oct 2020]</span> x </small></li>
-                      </ul>
-                    -->
+                    <ul class="news-list">
+                        <li><span class="news-date">[07/2026]</span><span>We released <a href="./projects/SpectraReward/"><strong>SpectraReward</strong></a>, a training-free reward model for text-to-image generation.</span></li>
+                        <li><span class="news-date">[05/2026]</span><span><a href="./projects/AlphaGRPO/"><strong>AlphaGRPO</strong></a> was accepted to <strong>ICML 2026</strong>.</span></li>
+                        <li><span class="news-date">[09/2025]</span><span>I joined <strong>ByteDance Seed</strong> as a Research Intern.</span></li>
+                        <li><span class="news-date">[02/2025]</span><span>Two papers, <strong>HiRes-LLaVA</strong> and <strong>EMOVA</strong>, were accepted to <strong>CVPR 2025</strong>.</span></li>
+                        <li><span class="news-date">[09/2024]</span><span>I started my Ph.D. at <strong>HKU</strong>.</span></li>
+                        <li><span class="news-date">[09/2024]</span><span>I joined <strong>Huawei Noah's Ark Lab (Hong Kong)</strong> as a Research Intern.</span></li>
+                        <li><span class="news-date">[07/2024]</span><span><strong>LayerDiff</strong> was accepted to <strong>ECCV 2024</strong>.</span></li>
+                    </ul>
 
-                    <h3 id="publications">Selected Publications <font size="4.5">[<a href="https://scholar.google.com/citations?hl=en&user=B5zcj4wAAAAJ">Google Scholar</a>]</font></h3>
-                    <ul>
+                    <h3 id="publications">Selected Publications <span class="section-link">[<a href="https://scholar.google.com/citations?hl=en&user=B5zcj4wAAAAJ">Google Scholar</a>]</span></h3>
+                    <div class="publication-list">
+                        <article class="publication-item">
+                          <a class="publication-image" href="./projects/AlphaGRPO/" aria-label="AlphaGRPO project page">
+                            <img src="./index_files/publications/alphagrpo.jpg" alt="AlphaGRPO training framework" loading="lazy">
+                          </a>
+                          <div class="publication-details">
+                            <div class="pub-title">AlphaGRPO: Unlocking Self-Reflective Multimodal Generation in Unified Multimodal Models via Decompositional Verifiable Reward</div>
+                            <strong>Runhui Huang</strong>, Jie Wu, Rui Yang, Zhe Liu, Hengshuang Zhao
+                            <br><i>ICML</i>, 2026.
+                            <div class="publication-links">[<a href="https://arxiv.org/abs/2605.12495">paper</a>] [<a href="./projects/AlphaGRPO/">project</a>] [<a href="https://github.com/huangrh99/AlphaGRPO">code</a>] [<a href="https://huggingface.co/collections/huangrh9/alphagrpo">models</a>]</div>
+                          </div>
+                        </article>
 
-                        <li>
-                          <div class="pub-title" style="color:#1f57b8">AlphaGRPO: Unlocking Self-Reflective Multimodal Generation in Unified Multimodal Models via Decompositional Verifiable Reward</div>
-                          <strong>Runhui Huang</strong>, Jie Wu, Rui Yang, Zhe Liu, Hengshuang Zhao
-                          <br><i>ICML</i>, 2026.
-                          [<a href="https://arxiv.org/abs/2605.12495">paper</a>] [<a href="./projects/AlphaGRPO/">project</a>] [<a href="https://github.com/huangrh99/AlphaGRPO">code</a>]
-                        </li>
+                        <article class="publication-item">
+                          <a class="publication-image" href="https://illume-unified-mllm.github.io/" aria-label="ILLUME+ project page">
+                            <img src="./index_files/publications/illume-plus.jpg" alt="ILLUME+ multimodal understanding and image generation examples" loading="lazy">
+                          </a>
+                          <div class="publication-details">
+                            <div class="pub-title">ILLUME+: Illuminating Unified MLLM with Dual Visual Tokenization and Diffusion Refinement</div>
+                            <strong>Runhui Huang</strong>, Chunwei Wang, Junwei Yang, Guansong Lu, Yunlong Yuan, Jianhua Han, Lu Hou, Wei Zhang, Lanqing Hong, Hengshuang Zhao, Hang Xu
+                            <br><i>CVPR</i>, 2026.
+                            <div class="publication-links">[<a href="https://arxiv.org/abs/2504.01934">paper</a>] [<a href="https://illume-unified-mllm.github.io/">project</a>] [<a href="https://github.com/illume-unified-mllm/ILLUME_plus">code</a>] [<a href="https://huggingface.co/spaces/ILLUME-MLLM/ILLUME_plus-7b">demo</a>] [<a href="https://huggingface.co/collections/ILLUME-MLLM/illume-models-683b3916f5af2d0a015b3477">models</a>]</div>
+                          </div>
+                        </article>
 
-                        <li>
-                          <div class="pub-title" style="color:#1f57b8">Illume+: Illuminating Unified MLLM with Dual Visual Tokenization and Diffusion Refinement</div>
-                          <strong>Runhui Huang</strong>, Chunwei Wang, Junwei Yang, Guansong Lu, Yunlong Yuan, Jianhua Han, Lu Hou, Wei Zhang, Lanqing Hong, Hengshuang Zhao, Hang Xu
-                          <br><i>CVPR</i>, 2026.
-                          [<a href="https://arxiv.org/abs/2504.01934">paper</a>] [<a href="https://illume-unified-mllm.github.io/">project</a>] [<a href="https://github.com/illume-unified-mllm/ILLUME_plus">code</a>] [<a href="https://huggingface.co/spaces/ILLUME-MLLM/ILLUME_plus-7b">demo</a>] [<a href="https://huggingface.co/collections/ILLUME-MLLM/illume-models-683b3916f5af2d0a015b3477">models</a>]
-                        </li>
+                        <article class="publication-item">
+                          <a class="publication-image" href="https://emova-ollm.github.io/" aria-label="EMOVA project page">
+                            <img src="./index_files/publications/emova.jpg" alt="EMOVA model architecture" loading="lazy">
+                          </a>
+                          <div class="publication-details">
+                            <div class="pub-title">EMOVA: Empowering Language Models to See, Hear and Speak with Vivid Emotions</div>
+                            Kai Chen*, Yunhao Gou*, <strong>Runhui Huang*</strong>, Zhili Liu*, Daxin Tan*, Jing Xu, Chao Wang, Yi Zhu, Yihan Zeng.
+                            <br><i>CVPR</i>, 2025.
+                            <div class="publication-links">[<a href="https://arxiv.org/abs/2409.18042">paper</a>] [<a href="https://emova-ollm.github.io/">project</a>] [<a href="https://github.com/emova-ollm/EMOVA">code</a>]</div>
+                          </div>
+                        </article>
+
+                        <article class="publication-item">
+                          <a class="publication-image" href="https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_HiRes-LLaVA_Restoring_Fragmentation_Input_in_High-Resolution_Large_Vision-Language_Models_CVPR_2025_paper.pdf" aria-label="HiRes-LLaVA paper">
+                            <img src="./index_files/publications/hires-llava.jpg" alt="HiRes-LLaVA model architecture" loading="lazy">
+                          </a>
+                          <div class="publication-details">
+                            <div class="pub-title">HiRes-LLaVA: Restoring Fragmentation Input in High-Resolution Large Vision-Language Models</div>
+                            <strong>Runhui Huang</strong>, Xinpeng Ding, Chunwei Wang, Jianhua Han, Yulong Liu, Hengshuang Zhao, Hang Xu, Lu Hou, Wei Zhang, Xiaodan Liang.
+                            <br><i>CVPR</i>, 2025.
+                            <div class="publication-links">[<a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_HiRes-LLaVA_Restoring_Fragmentation_Input_in_High-Resolution_Large_Vision-Language_Models_CVPR_2025_paper.pdf">paper</a>]</div>
+                          </div>
+                        </article>
+
+                        <article class="publication-item">
+                          <a class="publication-image" href="https://arxiv.org/abs/2403.11929" aria-label="LayerDiff paper">
+                            <img src="./index_files/publications/layerdiff.jpg" alt="LayerDiff model architecture" loading="lazy">
+                          </a>
+                          <div class="publication-details">
+                            <div class="pub-title">LayerDiff: Exploring Text-guided Multi-layered Composable Image Synthesis via Layer-Collaborative Diffusion Model</div>
+                            <strong>Runhui Huang</strong>, Kaixin Cai, Jianhua Han, Xiaodan Liang, Renjing Pei, Guansong Lu, Songcen Xu, Wei Zhang, Hang Xu
+                            <br><i>ECCV</i>, 2024.
+                            <div class="publication-links">[<a href="https://arxiv.org/abs/2403.11929">paper</a>]</div>
+                          </div>
+                        </article>
 
 
-                        <li>
-                          <div class="pub-title" style="color:#1f57b8">Emova: Empowering language models to see, hear and speak with vivid emotions</div>
-                          Kai Chen*, Yunhao Gou*, <strong>Runhui Huang*</strong>, Zhili Liu*, Daxin Tan*, Jing Xu, Chao Wang, Yi Zhu, Yihan Zeng.
-                          <br><i>CVPR</i>, 2025.
-                          [<a href="https://arxiv.org/abs/2409.18042">paper</a>] [<a href="https://emova-ollm.github.io/">project</a>] [<a href="https://github.com/emova-ollm/EMOVA">code</a>]
-                        </li>
-
-                        <li>
-                          <div class="pub-title" style="color:#1f57b8">HiRes-LLaVA: Restoring Fragmentation Input in High-Resolution Large Vision-Language Models</div>
-                          <strong>Runhui Huang</strong>, Xinpeng Ding, Chunwei Wang, Jianhua Han, Yulong Liu, Hengshuang Zhao, Hang Xu, Lu Hou, Wei Zhang, Xiaodan Liang.
-                          <br><i>CVPR</i>, 2025.
-                          [<a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Huang_HiRes-LLaVA_Restoring_Fragmentation_Input_in_High-Resolution_Large_Vision-Language_Models_CVPR_2025_paper.pdf">paper</a>] 
-                        </li>
-
-                        <li>
-                          <div class="pub-title" style="color:#1f57b8">LayerDiff: Exploring Text-guided Multi-layered Composable Image Synthesis via Layer-Collaborative Diffusion Model</div>
-                          <strong>Runhui Huang</strong>, Kaixin Cai, Jianhua Han, Xiaodan Liang, Renjing Pei, Guansong Lu, Songcen Xu, Wei Zhang, Hang Xu
-                          <br><i>ECCV</i>, 2024.
-                          [<a href="https://arxiv.org/abs/2403.11929">paper</a>] 
-                        </li>
-
-
-                        <!-- <li>
+                        <!-- <article class="publication-item">
                           <div class="pub-title" style="color:#1f57b8">DiffDis: Empowering Generative Diffusion Model with Cross-Modal Discrimination Capability</div>
                           <strong>Runhui Huang</strong>, Jianhua Han, Guansong Lu, Xiaodan Liang, Yihan Zeng, Wei Zhang, Hang Xu.
                           <br><i>International Conference on Computer Vision</i>, 2023.
                           [<a href="https://arxiv.org/abs/2308.09306.pdf">paper</a>] 
-                        </li>
+                        </article>
 
-                        <li>
+                        <article class="publication-item">
                           <div class="pub-title" style="color:#1f57b8">NLIP: Noise-robust Language-Image Pre-training</div>
                           <strong>Runhui Huang</strong>, Yanxin Long, Jianhua Han, Hang Xu, Xiwen Liang, Chunjing Xu, Xiaodan Liang.
                           <br><i>AAAI Conference on Artificial Intelligence</i>, 2023.
                           [<a href="https://arxiv.org/pdf/2212.07086.pdf">paper</a>] 
-                        </li> -->
+                        </article> -->
 
-                        <li>
+                        <article class="publication-item">
+                          <a class="publication-image" href="https://arxiv.org/pdf/2111.07783.pdf" aria-label="FILIP paper">
+                            <img src="./index_files/publications/filip.jpg" alt="FILIP model architecture" loading="lazy">
+                          </a>
+                          <div class="publication-details">
                             <div class="pub-title" style="color:#1f57b8">FILIP: Fine-grained Interactive Language-Image Pre-Training</div>
                             Lewei Yao∗, <strong>Runhui Huang∗</strong>, Lu Hou∗, Guansong Lu, Minzhe Niu, Hang Xu, Xiaodan Liang, Zhenguo Li, Xin Jiang, Chunjing Xu. 
                             <br><i>International Conference on Learning Representations (ICLR)</i>, 2022. 
-                            [<a href="https://arxiv.org/pdf/2111.07783.pdf">paper</a>]
-                        </li>
+                            <div class="publication-links">[<a href="https://arxiv.org/pdf/2111.07783.pdf">paper</a>]</div>
+                          </div>
+                        </article>
 
-                    </ul>
+                    </div>
 
                     <!-- <h3 id="preprint">Preprint</h3>
  	    <ul>
@@ -130,12 +169,14 @@
                         <p> </p>
 
                     </ul> -->
+
+                    <h3 id="honors">Selected Honors</h3>
+                    <ul class="honors-list">
+                        <li><span>2023</span> Academic Innovation Scholarship, Sun Yat-sen University</li>
+                        <li><span>2022</span> Outstanding Student Scholarship (First Class), Sun Yat-sen University</li>
+                        <li><span>2019</span> Second Prize, National College Student Mathematical Modeling Competition (Guangdong)</li>
+                    </ul>
                     
-                    <!-- <h3 id="awards">Experiences</h3>
-                    <ul>
-                        <li> <strong>June 2021-May 2022</strong>, Research Intern, Noah Ark Lab, Huawei. </li>
-                    </ul> -->
-        
                     <!-- <h3 id="awards">Honors &amp; Awards</h3>
                     <ul>
                         <li> Guangdong Guangda Scholarships for Further Studies, 2021 </li>
