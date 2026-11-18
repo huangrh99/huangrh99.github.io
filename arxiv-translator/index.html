@@ -31,6 +31,7 @@
       .history-id { font-weight: 700; }
       .history-meta { color: #697589; font-size: 13px; margin-top: 6px; }
       .history-empty { color: #697589; padding: 12px 0; }
+      .history-actions { margin-top: 8px; font-size: 14px; }
       details { margin-top: 18px; color: #596579; }
       summary { cursor: pointer; font-weight: 650; color: #39465d; }
       .backend-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
@@ -198,7 +199,9 @@
         historyList.innerHTML = jobs.map(job => {
           const updated = job.updated_at ? new Date(job.updated_at * 1000).toLocaleString() : '';
           const tokens = Number.isFinite(job.total_tokens) ? ` · ${job.total_tokens} tokens` : '';
-          return `<button class="history-item" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(job.arxiv_id)}</span><span>${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div></button>`;
+          const displayId = job.display_arxiv_id || job.arxiv_id;
+          const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions"><a href="${apiUrl(job.pdf_url)}" target="_blank">阅读中文 PDF</a><a href="compare.html?job=${encodeURIComponent(job.id)}" target="_blank">对照阅读</a></div>` : '';
+          return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span>${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
         }).join('');
       }
 
@@ -272,6 +275,7 @@
       });
 
       historyList.addEventListener('click', event => {
+        if (event.target.closest('a')) return;
         const item = event.target.closest('[data-job-id]');
         if (!item) return;
         poll(item.dataset.jobId);
