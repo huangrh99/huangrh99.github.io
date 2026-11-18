@@ -2,6 +2,8 @@
 
 这是个人主页中的静态入口页面。翻译任务和历史数据保存在 Mac mini 后端，不会写入这个 GitHub Pages 仓库。
 
+任务完成后可以打开中文 PDF，也可以进入对照阅读页面，同时查看原文 arXiv PDF 和中文译文 PDF。
+
 部署前，在 `config.js` 填入后端的 HTTPS 地址：
 
 ```js
