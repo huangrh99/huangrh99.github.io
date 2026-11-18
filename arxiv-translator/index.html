@@ -25,7 +25,7 @@
       .history-head h2 { margin: 0; font-size: 19px; }
       .history-search { max-width: 300px; padding: 10px 12px; font-size: 14px; }
       .history-list { display: grid; gap: 10px; margin-top: 16px; }
-      .history-item { width: 100%; text-align: left; border: 1px solid #e2e7f0; background: #fbfcff; border-radius: 12px; padding: 13px 14px; cursor: pointer; }
+      .history-item { width: 100%; text-align: left; border: 1px solid #e2e7f0; background: #fbfcff; color: #172033; border-radius: 12px; padding: 13px 14px; cursor: pointer; }
       .history-item:hover { border-color: #9db4ee; background: #f4f7ff; }
       .history-main { display: flex; justify-content: space-between; gap: 12px; }
       .history-id { font-weight: 700; }
@@ -38,6 +38,12 @@
       .backend-row button { margin-top: 0; white-space: nowrap; }
       .hint { margin: 8px 0 0; font-size: 13px; }
       .result-links { display: flex; flex-wrap: wrap; gap: 8px 0; }
+      .service-status { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; color: #596579; font-size: 14px; }
+      .status-dot { width: 9px; height: 9px; border-radius: 50%; background: #9aa6b8; }
+      .status-dot.connected { background: #16764a; }
+      .status-dot.disconnected, .status-dot.error { background: #b42318; }
+      .status-dot.checking { background: #c78100; }
+      .service-status small { color: #697589; }
     </style>
   </head>
   <body>
@@ -46,6 +52,7 @@
         <section class="card">
           <h1>ArXiv LaTeX Translator</h1>
           <p>输入 arXiv 链接或论文 ID。工具会保护公式、图片和表格内容，翻译正文与 caption，再编译中文 PDF。</p>
+          <div class="service-status"><span id="codex-status-dot" class="status-dot"></span><span>Codex CLI</span><strong id="codex-status-label">未验证</strong><small id="codex-status-detail"></small></div>
           <form id="job-form">
             <label for="source">arXiv 链接或 ID</label>
             <input id="source" name="source" placeholder="例如 2401.12345 或 https://arxiv.org/abs/2401.12345" required>
@@ -84,6 +91,9 @@
       const links = document.getElementById('links');
       const historyQuery = document.getElementById('history-query');
       const historyList = document.getElementById('history-list');
+      const codexStatusDot = document.getElementById('codex-status-dot');
+      const codexStatusLabel = document.getElementById('codex-status-label');
+      const codexStatusDetail = document.getElementById('codex-status-detail');
       const backendUrl = document.getElementById('backend-url');
       const saveBackend = document.getElementById('save-backend');
       const queryApiBase = new URLSearchParams(window.location.search).get('api') || '';
@@ -112,6 +122,25 @@
 
       function connectionMessage() {
         return apiBase ? `无法连接后端，请检查 ${apiBase} 是否正在运行并允许跨域访问` : '无法连接后端，请先配置后端地址';
+      }
+
+      function renderCodexStatus(value) {
+        const labels = {unknown: '未验证', checking: '检查中', connected: '已连接', disconnected: '认证失效', error: '调用错误'};
+        const status = value && value.status ? value.status : 'unknown';
+        codexStatusDot.className = `status-dot ${status}`;
+        codexStatusLabel.textContent = labels[status] || status;
+        codexStatusDetail.textContent = value && value.message ? ` · ${value.message}` : '';
+      }
+
+      async function loadCodexStatus() {
+        try {
+          const response = await fetch(apiUrl('/api/status'));
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          renderCodexStatus(data.codex_cli);
+        } catch (error) {
+          renderCodexStatus({status: 'error', message: connectionMessage()});
+        }
       }
 
       function resultLinks(job) {
@@ -232,6 +261,8 @@
       });
 
       loadHistory();
+      loadCodexStatus();
+      setInterval(loadCodexStatus, 15000);
     </script>
   </body>
 </html>
