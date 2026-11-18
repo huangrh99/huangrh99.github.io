@@ -84,6 +84,7 @@
         </section>
       </div>
     </main>
+    <script src="config.js"></script>
     <script>
       const form = document.getElementById('job-form');
       const button = document.getElementById('submit');
@@ -101,7 +102,13 @@
       const queryApiBase = new URLSearchParams(window.location.search).get('api') || '';
       const storedApiBase = readStoredApiBase();
       const configuredApiBase = window.ARXIV_API_BASE || queryApiBase || storedApiBase;
-      let apiBase = (configuredApiBase || (window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '')).replace(/\/+$/, '');
+      function inferBackendBase() {
+        if (window.location.protocol === 'file:') return 'http://127.0.0.1:8000';
+        if (window.location.hostname.endsWith('.github.io')) return '';
+        const path = window.location.pathname.replace(/\/+$/, '');
+        return `${window.location.origin}${path === '/' ? '' : path}`;
+      }
+      let apiBase = (configuredApiBase || inferBackendBase()).replace(/\/+$/, '');
       let timer;
 
       backendUrl.value = apiBase;
