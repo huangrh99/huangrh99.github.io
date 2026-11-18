@@ -155,7 +155,8 @@
 
       function resultLinks(job) {
         const compareUrl = `compare.html?job=${encodeURIComponent(job.id)}`;
-        return `<div class="result-links">${appendixLink(job)}<a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank">打开中文 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a><a href="${escapeHtml(compareUrl)}" target="_blank">对照阅读</a><a href="${escapeHtml(apiUrl(job.source_url))}">下载翻译源码</a><a href="${escapeHtml(apiUrl(job.log_url))}" target="_blank">查看日志</a></div>`;
+        const readerUrl = `reader.html?job=${encodeURIComponent(job.id)}`;
+        return `<div class="result-links">${appendixLink(job)}<a href="${escapeHtml(readerUrl)}" target="_blank">打开中文 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a><a href="${escapeHtml(compareUrl)}" target="_blank">对照阅读</a><a href="${escapeHtml(apiUrl(job.source_url))}">下载翻译源码</a><a href="${escapeHtml(apiUrl(job.log_url))}" target="_blank">查看日志</a></div>`;
       }
 
       function retryLink(job) {
@@ -252,7 +253,7 @@
           const updated = job.updated_at ? new Date(job.updated_at * 1000).toLocaleString() : '';
           const tokens = Number.isFinite(job.total_tokens) ? ` · ${job.total_tokens} tokens` : '';
           const displayId = job.display_arxiv_id || job.arxiv_id;
-          const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions"><a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank">阅读中文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">对照阅读</a></div>` : '';
+          const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions"><a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">阅读中文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">对照阅读</a></div>` : '';
           return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span>${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
         }).join('');
       }

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Arxiv Translation 中文 PDF</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
+      body { margin: 0; background: #f5f7fb; color: #172033; }
+      main { max-width: 1180px; margin: 28px auto; padding: 0 20px 32px; }
+      .card { background: white; border: 1px solid #e2e7f0; border-radius: 18px; padding: 22px; box-shadow: 0 12px 36px rgba(27, 45, 80, .08); }
+      h1 { margin: 0 0 8px; font-size: 25px; }
+      p { color: #596579; line-height: 1.6; }
+      a { color: #2457d6; margin-right: 14px; }
+      .error { color: #b42318; white-space: pre-wrap; }
+      iframe { display: block; width: 100%; height: 82vh; min-height: 640px; margin-top: 18px; border: 1px solid #d9e0ec; border-radius: 10px; background: #eef2f8; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="card">
+        <h1>中文翻译 PDF</h1>
+        <p id="summary">正在读取任务…</p>
+        <div id="actions"></div>
+        <div id="status"></div>
+        <iframe id="pdf" title="中文翻译 PDF" hidden></iframe>
+      </section>
+    </main>
+    <script src="config.js"></script>
+    <script>
+      const jobId = new URLSearchParams(window.location.search).get('job') || '';
+      const queryApiBase = new URLSearchParams(window.location.search).get('api') || '';
+      const storedApiBase = readStoredApiBase();
+      const configuredApiBase = window.ARXIV_API_BASE || queryApiBase || storedApiBase;
+      const summary = document.getElementById('summary');
+      const actions = document.getElementById('actions');
+      const status = document.getElementById('status');
+      const pdf = document.getElementById('pdf');
+
+      function readStoredApiBase() {
+        try { return localStorage.getItem('arxiv-translator-api-base') || ''; } catch (error) { return ''; }
+      }
+
+      function inferBackendBase() {
+        if (window.location.protocol === 'file:') return 'http://127.0.0.1:8000';
+        if (window.location.hostname.endsWith('.github.io')) return '';
+        const path = window.location.pathname.replace(/\/+$/, '');
+        return `${window.location.origin}${path.endsWith('/reader.html') ? path.slice(0, -'/reader.html'.length) : path}`;
+      }
+
+      const apiBase = (configuredApiBase || inferBackendBase()).replace(/\/+$/, '');
+      function apiUrl(path) { return `${apiBase}${path}`; }
+      function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character])); }
+
+      async function load() {
+        if (!jobId) { status.className = 'error'; status.textContent = '缺少任务 ID'; return; }
+        try {
+          const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(jobId)}`));
+          const job = await response.json();
+          if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
+          summary.textContent = `${job.arxiv_id} · ${job.message}`;
+          if (job.status !== 'completed' || !job.pdf_url) {
+            status.className = job.status === 'failed' ? 'error' : '';
+            status.textContent = job.error || '翻译任务尚未完成';
+            return;
+          }
+          actions.innerHTML = `<a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank">下载原始 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}">对照阅读</a>`;
+          pdf.src = apiUrl(job.pdf_url);
+          pdf.hidden = false;
+          status.textContent = Number.isFinite(job.total_tokens) ? `本篇论文消耗 ${job.total_tokens} tokens` : '';
+        } catch (error) {
+          status.className = 'error';
+          status.textContent = `无法读取任务：${error.message}`;
+        }
+      }
+
+      load();
+    </script>
+  </body>
+</html>
