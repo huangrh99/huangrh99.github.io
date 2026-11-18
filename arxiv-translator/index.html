@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ArXiv LaTeX Translator</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
+      body { margin: 0; min-height: 100vh; background: #f5f7fb; color: #172033; }
+      main { max-width: 920px; margin: 8vh auto; padding: 0 20px; }
+      .stack { display: grid; gap: 18px; }
+      .card { background: white; border: 1px solid #e2e7f0; border-radius: 18px; padding: 28px; box-shadow: 0 12px 36px rgba(27, 45, 80, .08); }
+      h1 { margin: 0 0 8px; font-size: 28px; }
+      p { color: #596579; line-height: 1.6; }
+      label { display: block; font-weight: 650; margin: 22px 0 8px; }
+      input { box-sizing: border-box; width: 100%; padding: 13px 14px; border: 1px solid #cbd4e2; border-radius: 10px; font-size: 16px; }
+      button { margin-top: 16px; border: 0; border-radius: 10px; padding: 12px 18px; background: #2457d6; color: white; font-size: 15px; cursor: pointer; }
+      button:disabled { opacity: .55; cursor: wait; }
+      #status { margin-top: 24px; padding: 16px; border-radius: 12px; background: #f0f4fb; min-height: 42px; }
+      progress { width: 100%; height: 12px; margin-top: 12px; }
+      a { color: #2457d6; margin-right: 14px; }
+      .error { color: #b42318; white-space: pre-wrap; }
+      .success { color: #16764a; }
+      .history-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .history-head h2 { margin: 0; font-size: 19px; }
+      .history-search { max-width: 300px; padding: 10px 12px; font-size: 14px; }
+      .history-list { display: grid; gap: 10px; margin-top: 16px; }
+      .history-item { width: 100%; text-align: left; border: 1px solid #e2e7f0; background: #fbfcff; border-radius: 12px; padding: 13px 14px; cursor: pointer; }
+      .history-item:hover { border-color: #9db4ee; background: #f4f7ff; }
+      .history-main { display: flex; justify-content: space-between; gap: 12px; }
+      .history-id { font-weight: 700; }
+      .history-meta { color: #697589; font-size: 13px; margin-top: 6px; }
+      .history-empty { color: #697589; padding: 12px 0; }
+      details { margin-top: 18px; color: #596579; }
+      summary { cursor: pointer; font-weight: 650; color: #39465d; }
+      .backend-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+      .backend-row input { flex: 1; }
+      .backend-row button { margin-top: 0; white-space: nowrap; }
+      .hint { margin: 8px 0 0; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="stack">
+        <section class="card">
+          <h1>ArXiv LaTeX Translator</h1>
+          <p>输入 arXiv 链接或论文 ID。工具会保护公式、图片和表格内容，翻译正文与 caption，再编译中文 PDF。</p>
+          <form id="job-form">
+            <label for="source">arXiv 链接或 ID</label>
+            <input id="source" name="source" placeholder="例如 2401.12345 或 https://arxiv.org/abs/2401.12345" required>
+            <button id="submit" type="submit">开始翻译</button>
+          </form>
+          <details>
+            <summary>后端连接设置</summary>
+            <div class="backend-row">
+              <input id="backend-url" type="url" placeholder="例如 https://translator.example.com">
+              <button id="save-backend" type="button">保存地址</button>
+            </div>
+            <p class="hint">GitHub Pages 页面需要填入可从浏览器访问的 HTTPS 后端地址。地址只保存在当前浏览器。</p>
+          </details>
+          <div id="status" hidden>
+            <div id="message"></div>
+            <progress id="progress" max="100" value="0"></progress>
+            <div id="links" style="margin-top: 14px"></div>
+          </div>
+        </section>
+        <section class="card">
+          <div class="history-head">
+            <h2>历史翻译</h2>
+            <input id="history-query" class="history-search" placeholder="搜索 arXiv ID 或链接" aria-label="搜索历史翻译">
+          </div>
+          <div id="history-list" class="history-list"><div class="history-empty">正在读取历史任务…</div></div>
+        </section>
+      </div>
+    </main>
+    <script src="./config.js"></script>
+    <script>
+      const form = document.getElementById('job-form');
+      const button = document.getElementById('submit');
+      const statusBox = document.getElementById('status');
+      const message = document.getElementById('message');
+      const progress = document.getElementById('progress');
+      const links = document.getElementById('links');
+      const historyQuery = document.getElementById('history-query');
+      const historyList = document.getElementById('history-list');
+      const backendUrl = document.getElementById('backend-url');
+      const saveBackend = document.getElementById('save-backend');
+      const queryApiBase = new URLSearchParams(window.location.search).get('api') || '';
+      const storedApiBase = readStoredApiBase();
+      const configuredApiBase = window.ARXIV_API_BASE || queryApiBase || storedApiBase;
+      let apiBase = (configuredApiBase || (window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '')).replace(/\/+$/, '');
+      let timer;
+
+      backendUrl.value = apiBase;
+
+      function readStoredApiBase() {
+        try {
+          return localStorage.getItem('arxiv-translator-api-base') || '';
+        } catch (error) {
+          return '';
+        }
+      }
+
+      function storeApiBase(value) {
+        try {
+          localStorage.setItem('arxiv-translator-api-base', value);
+        } catch (error) {
+          // Some file:// browser contexts disable local storage.
+        }
+      }
+
+      function connectionMessage() {
+        return apiBase ? `无法连接后端，请检查 ${apiBase} 是否正在运行并允许跨域访问` : '无法连接后端，请先配置后端地址';
+      }
+
+      saveBackend.addEventListener('click', () => {
+        apiBase = backendUrl.value.trim().replace(/\/+$/, '');
+        storeApiBase(apiBase);
+        loadHistory();
+      });
+
+      function apiUrl(path) {
+        return `${apiBase}${path}`;
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+      }
+
+      function historyStatus(job) {
+        const labels = {completed: '已完成', failed: '失败', running: '进行中', queued: '排队中'};
+        return labels[job.status] || job.status;
+      }
+
+      function renderHistory(jobs) {
+        if (!jobs.length) {
+          historyList.innerHTML = '<div class="history-empty">没有匹配的历史任务</div>';
+          return;
+        }
+        historyList.innerHTML = jobs.map(job => {
+          const updated = job.updated_at ? new Date(job.updated_at * 1000).toLocaleString() : '';
+          const tokens = Number.isFinite(job.total_tokens) ? ` · ${job.total_tokens} tokens` : '';
+          return `<button class="history-item" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(job.arxiv_id)}</span><span>${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div></button>`;
+        }).join('');
+      }
+
+      async function loadHistory() {
+        try {
+          const query = encodeURIComponent(historyQuery.value.trim());
+          const response = await fetch(apiUrl(`/api/jobs?query=${query}`));
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          renderHistory(data.jobs || []);
+        } catch (error) {
+          historyList.innerHTML = `<div class="history-empty">${escapeHtml(connectionMessage())}</div>`;
+        }
+      }
+
+      function showJob(job) {
+        statusBox.hidden = false;
+        progress.value = job.progress || 0;
+        message.className = job.status === 'failed' ? 'error' : job.status === 'completed' ? 'success' : '';
+        const tokenText = Number.isFinite(job.total_tokens) ? `，消耗 ${job.total_tokens} tokens` : '';
+        message.textContent = job.error ? `${job.message}\n${job.error}${tokenText}` : `${job.message}（${job.progress || 0}%${tokenText}）`;
+        if (job.status === 'completed') {
+          links.innerHTML = `<a href="${apiUrl(job.pdf_url)}" target="_blank">打开 PDF</a><a href="${apiUrl(job.source_url)}">下载翻译源码</a><a href="${apiUrl(job.log_url)}" target="_blank">查看日志</a>`;
+          button.disabled = false;
+          clearInterval(timer);
+          loadHistory();
+        } else if (job.status === 'failed') {
+          links.innerHTML = job.log_url ? `<a href="${apiUrl(job.log_url)}" target="_blank">查看日志</a>` : '';
+          button.disabled = false;
+          clearInterval(timer);
+          loadHistory();
+        }
+      }
+
+      async function poll(id) {
+        try {
+          const response = await fetch(apiUrl(`/api/jobs/${id}`));
+          const job = await response.json();
+          showJob(job);
+        } catch (error) {
+          statusBox.hidden = false;
+          message.className = 'error';
+          message.textContent = connectionMessage();
+        }
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        button.disabled = true;
+        links.innerHTML = '';
+        let response;
+        try {
+          response = await fetch(apiUrl('/api/jobs'), { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({source: document.getElementById('source').value}) });
+        } catch (error) {
+          statusBox.hidden = false;
+          message.className = 'error';
+          message.textContent = connectionMessage();
+          button.disabled = false;
+          return;
+        }
+        const job = await response.json();
+        if (!response.ok) {
+          statusBox.hidden = false;
+          message.className = 'error';
+          message.textContent = job.error || '提交失败';
+          button.disabled = false;
+          return;
+        }
+        showJob(job);
+        timer = setInterval(() => poll(job.id), 1000);
+      });
+
+      historyList.addEventListener('click', event => {
+        const item = event.target.closest('[data-job-id]');
+        if (!item) return;
+        poll(item.dataset.jobId);
+      });
+
+      let historyTimer;
+      historyQuery.addEventListener('input', () => {
+        clearTimeout(historyTimer);
+        historyTimer = setTimeout(loadHistory, 200);
+      });
+
+      loadHistory();
+    </script>
+  </body>
+</html>
