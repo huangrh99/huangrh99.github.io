@@ -40,6 +40,7 @@
       .hint { margin: 8px 0 0; font-size: 13px; }
       .result-links { display: flex; flex-wrap: wrap; gap: 8px 0; }
       .retry-button { margin: 0 14px 0 0; padding: 8px 12px; background: #b42318; }
+      .appendix-button { margin: 0 14px 0 0; padding: 8px 12px; background: #5b4acb; }
       .service-status { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; color: #596579; font-size: 14px; }
       .status-dot { width: 9px; height: 9px; border-radius: 50%; background: #9aa6b8; }
       .status-dot.connected { background: #16764a; }
@@ -147,11 +148,15 @@
 
       function resultLinks(job) {
         const compareUrl = `compare.html?job=${encodeURIComponent(job.id)}`;
-        return `<div class="result-links"><a href="${apiUrl(job.pdf_url)}" target="_blank">打开中文 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a><a href="${compareUrl}" target="_blank">对照阅读</a><a href="${apiUrl(job.source_url)}">下载翻译源码</a><a href="${apiUrl(job.log_url)}" target="_blank">查看日志</a></div>`;
+        return `<div class="result-links">${appendixLink(job)}<a href="${apiUrl(job.pdf_url)}" target="_blank">打开中文 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a><a href="${compareUrl}" target="_blank">对照阅读</a><a href="${apiUrl(job.source_url)}">下载翻译源码</a><a href="${apiUrl(job.log_url)}" target="_blank">查看日志</a></div>`;
       }
 
       function retryLink(job) {
         return `<button class="retry-button" data-retry-job-id="${escapeHtml(job.id)}" type="button">复用源码重试</button>`;
+      }
+
+      function appendixLink(job) {
+        return Array.isArray(job.appendix_files) && job.appendix_files.length ? `<button class="appendix-button" data-appendix-job-id="${escapeHtml(job.id)}" type="button">继续翻译 Appendix</button>` : '';
       }
 
       async function retryJob(id) {
@@ -169,6 +174,24 @@
           message.className = 'error';
           message.textContent = `重试失败：${error.message}`;
           if (retryButton) retryButton.disabled = false;
+        }
+      }
+
+      async function translateAppendix(id) {
+        const appendixButton = document.querySelector(`[data-appendix-job-id="${CSS.escape(id)}"]`);
+        if (appendixButton) appendixButton.disabled = true;
+        try {
+          const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(id)}/appendix`), {method: 'POST'});
+          const job = await response.json();
+          if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
+          showJob(job);
+          clearInterval(timer);
+          timer = setInterval(() => poll(job.id), 1000);
+        } catch (error) {
+          statusBox.hidden = false;
+          message.className = 'error';
+          message.textContent = `翻译 Appendix 失败：${error.message}`;
+          if (appendixButton) appendixButton.disabled = false;
         }
       }
 
@@ -284,6 +307,8 @@
       links.addEventListener('click', event => {
         const retryButton = event.target.closest('[data-retry-job-id]');
         if (retryButton) retryJob(retryButton.dataset.retryJobId);
+        const appendixButton = event.target.closest('[data-appendix-job-id]');
+        if (appendixButton) translateAppendix(appendixButton.dataset.appendixJobId);
       });
 
       let historyTimer;
