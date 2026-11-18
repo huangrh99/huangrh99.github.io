@@ -65,7 +65,7 @@
             return;
           }
           actions.innerHTML = `<a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank">下载原始 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}">对照阅读</a>`;
-          pdf.src = apiUrl(job.pdf_url);
+          pdf.src = `${apiUrl(job.pdf_url)}#page=1`;
           pdf.hidden = false;
           status.textContent = Number.isFinite(job.total_tokens) ? `本篇论文消耗 ${job.total_tokens} tokens` : '';
         } catch (error) {
