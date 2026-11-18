@@ -47,7 +47,13 @@
       const queryApiBase = params.get('api') || '';
       const storedApiBase = readStoredApiBase();
       const configuredApiBase = window.ARXIV_API_BASE || queryApiBase || storedApiBase;
-      const apiBase = (configuredApiBase || (window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '')).replace(/\/+$/, '');
+      function inferBackendBase() {
+        if (window.location.protocol === 'file:') return 'http://127.0.0.1:8000';
+        if (window.location.hostname.endsWith('.github.io')) return '';
+        const path = window.location.pathname.replace(/\/+$/, '');
+        return `${window.location.origin}${path.endsWith('/compare.html') ? path.slice(0, -'/compare.html'.length) : path}`;
+      }
+      const apiBase = (configuredApiBase || inferBackendBase()).replace(/\/+$/, '');
       const summary = document.getElementById('summary');
       const actions = document.getElementById('actions');
       const status = document.getElementById('status');
@@ -73,7 +79,7 @@
           const job = await response.json();
           if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
           summary.textContent = `${job.arxiv_id} · ${job.message}`;
-          actions.innerHTML = `<a href="${escapeHtml(job.arxiv_url)}" target="_blank">查看 arXiv 页面</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a>${job.pdf_url ? `<a href="${apiUrl(job.pdf_url)}" target="_blank">打开中文 PDF</a>` : ''}`;
+          actions.innerHTML = `<a href="${escapeHtml(job.arxiv_url)}" target="_blank">查看 arXiv 页面</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a>${job.pdf_url ? `<a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank">打开中文 PDF</a>` : ''}`;
           if (job.status !== 'completed' || !job.pdf_url) {
             status.className = job.status === 'failed' ? 'error' : '';
             status.textContent = job.error || '翻译任务尚未完成';
