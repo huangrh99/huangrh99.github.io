@@ -1,6 +1,8 @@
 const PDFJS_VERSION = '4.8.69';
 const PDFJS_URL = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.min.mjs`;
 const PDFJS_WORKER_URL = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.mjs`;
+// CJK fonts in XeLaTeX output need character maps; cdnjs does not host them, jsDelivr does (with CORS).
+const PDFJS_ASSETS_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}`;
 
 const pdfjsLib = await import(PDFJS_URL);
 pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
@@ -560,7 +562,13 @@ export async function createPdfViewer(root, source, { label = '', storageKey = '
   }).observe(stage);
 
   try {
-    const loadingTask = pdfjsLib.getDocument({ url: source, withCredentials: false });
+    const loadingTask = pdfjsLib.getDocument({
+      url: source,
+      withCredentials: false,
+      cMapUrl: `${PDFJS_ASSETS_URL}/cmaps/`,
+      cMapPacked: true,
+      standardFontDataUrl: `${PDFJS_ASSETS_URL}/standard_fonts/`,
+    });
     loadingTask.onProgress = ({ loaded, total }) => {
       if (total) progressFill.style.width = `${Math.min(100, (loaded / total) * 100)}%`;
     };
