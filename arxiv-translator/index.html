@@ -89,8 +89,8 @@
         </section>
       </div>
     </main>
-    <script src="config.js"></script>
-    <script src="formatters.js"></script>
+    <script src="config.js?v=20261120a"></script>
+    <script src="formatters.js?v=20261120a"></script>
     <script>
       const form = document.getElementById('job-form');
       const button = document.getElementById('submit');
@@ -236,7 +236,7 @@
           const updated = job.updated_at ? new Date(job.updated_at * 1000).toLocaleString() : '';
           const tokens = window.arxivTokenSummary(job) ? ` · ${window.arxivTokenSummary(job)}` : '';
           const displayId = job.display_arxiv_id || job.arxiv_id;
-          const pendingAppendix = window.arxivPendingAppendixCount(job);
+          const pendingAppendix = typeof window.arxivPendingAppendixCount === 'function' ? window.arxivPendingAppendixCount(job) : 0;
           const appendixAction = pendingAppendix ? `<button class="appendix-button history-appendix" data-appendix-job-id="${escapeHtml(job.id)}" type="button">继续翻译 Appendix（${pendingAppendix} 个文件）</button>` : '';
           const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions">${appendixAction}<a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">阅读中文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">对照阅读</a></div>` : '';
           return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span class="history-status">${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
@@ -252,7 +252,12 @@
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
           if (requestId !== historyRequest) return;
-          renderHistory(data.jobs || []);
+          try {
+            renderHistory(data.jobs || []);
+          } catch (renderError) {
+            // A rendering bug is not a connection problem; say what actually failed.
+            historyList.innerHTML = `<div class="history-empty">历史列表显示失败：${escapeHtml(renderError.message)}（请强制刷新页面）</div>`;
+          }
         } catch (error) {
           if (requestId !== historyRequest) return;
           historyList.innerHTML = `<div class="history-empty">${escapeHtml(connectionMessage())}</div>`;

@@ -49,10 +49,10 @@
       <div id="notice" class="notice">正在读取任务…</div>
       <div id="pdf-viewer" hidden></div>
     </main>
-    <script src="config.js"></script>
-    <script src="formatters.js"></script>
+    <script src="config.js?v=20261120a"></script>
+    <script src="formatters.js?v=20261120a"></script>
     <script type="module">
-      import { createPdfViewer } from './pdf-viewer.js';
+      import { createPdfViewer } from './pdf-viewer.js?v=20261120a';
 
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get('job') || '';
