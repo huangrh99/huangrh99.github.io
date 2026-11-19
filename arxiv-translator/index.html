@@ -30,9 +30,9 @@
       .history-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; width: 100%; text-align: left; border: 1px solid #e2e7f0; background: #fbfcff; color: #172033; border-radius: 12px; padding: 13px 14px; cursor: pointer; overflow: hidden; }
       .history-item:hover { border-color: #9db4ee; background: #f4f7ff; }
       .history-main { display: contents; }
-      .history-id { font-weight: 700; }
+      .history-id { min-width: 0; color: #172033; font-size: 16px; font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; }
+      .history-arxiv-id { grid-column: 1 / -1; margin-top: 2px; color: #697589; font-size: 13px; font-variant-numeric: tabular-nums; }
       .history-status { white-space: nowrap; }
-      .history-title { grid-column: 1 / -1; margin-top: 4px; color: #253049; font-size: 15px; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
       .history-meta { grid-column: 1 / -1; min-width: 0; color: #697589; font-size: 13px; line-height: 1.5; margin-top: 6px; overflow-wrap: anywhere; }
       .history-empty { color: #697589; padding: 12px 0; }
       .history-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 8px; font-size: 14px; }
@@ -91,8 +91,8 @@
         </section>
       </div>
     </main>
-    <script src="config.js?v=20261120d"></script>
-    <script src="formatters.js?v=20261120d"></script>
+    <script src="config.js?v=20261120e"></script>
+    <script src="formatters.js?v=20261120e"></script>
     <script>
       const form = document.getElementById('job-form');
       const button = document.getElementById('submit');
@@ -240,7 +240,7 @@
           const pendingAppendix = typeof window.arxivPendingAppendixCount === 'function' ? window.arxivPendingAppendixCount(job) : 0;
           const appendixAction = pendingAppendix ? `<button class="appendix-button history-appendix" data-appendix-job-id="${escapeHtml(job.id)}" type="button">继续翻译 Appendix（${pendingAppendix} 个文件）</button>` : '';
           const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions">${appendixAction}<a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">翻译阅读</a></div>` : '';
-          return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span class="history-status">${historyStatus(job)}</span></div>${job.title ? `<div class="history-title">${escapeHtml(job.title)}</div>` : ''}<div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
+          return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(job.title || displayId)}</span><span class="history-status">${historyStatus(job)}</span></div>${job.title ? `<div class="history-arxiv-id">arXiv ${escapeHtml(displayId)}</div>` : ''}<div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
         }).join('');
       }
 
