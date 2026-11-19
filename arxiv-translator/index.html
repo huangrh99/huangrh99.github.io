@@ -40,7 +40,6 @@
       .hint { margin: 8px 0 0; font-size: 13px; }
       .result-links { display: flex; flex-wrap: wrap; gap: 8px 0; }
       .retry-button { margin: 0 14px 0 0; padding: 8px 12px; background: #b42318; }
-      .repair-button { margin: 0 14px 0 0; padding: 8px 12px; background: #5b4acb; }
       .appendix-button { margin: 0 14px 0 0; padding: 8px 12px; background: #5b4acb; }
       .service-status { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; color: #596579; font-size: 14px; }
       .status-dot { width: 9px; height: 9px; border-radius: 50%; background: #9aa6b8; }
@@ -163,10 +162,6 @@
         return `<button class="retry-button" data-retry-job-id="${escapeHtml(job.id)}" type="button">复用源码重试</button>`;
       }
 
-      function repairLink(job) {
-        return job.compile_failed ? `<button class="repair-button" data-repair-job-id="${escapeHtml(job.id)}" type="button">让 Codex 修复编译</button>` : '';
-      }
-
       function appendixLink(job) {
         return Array.isArray(job.appendix_files) && job.appendix_files.length ? `<button class="appendix-button" data-appendix-job-id="${escapeHtml(job.id)}" type="button">继续翻译 Appendix</button>` : '';
       }
@@ -186,24 +181,6 @@
           message.className = 'error';
           message.textContent = `重试失败：${error.message}`;
           if (retryButton) retryButton.disabled = false;
-        }
-      }
-
-      async function repairJob(id) {
-        const repairButton = document.querySelector(`[data-repair-job-id="${CSS.escape(id)}"]`);
-        if (repairButton) repairButton.disabled = true;
-        try {
-          const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(id)}/repair`), {method: 'POST'});
-          const job = await response.json();
-          if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
-          showJob(job);
-          clearInterval(timer);
-          timer = setInterval(() => poll(job.id), 1000);
-        } catch (error) {
-          statusBox.hidden = false;
-          message.className = 'error';
-          message.textContent = `Codex 编译修复失败：${error.message}`;
-          if (repairButton) repairButton.disabled = false;
         }
       }
 
@@ -282,7 +259,7 @@
           clearInterval(timer);
           loadHistory();
         } else if (job.status === 'failed') {
-          links.innerHTML = `${repairLink(job)}${retryLink(job)}${job.log_url ? `<a href="${apiUrl(job.log_url)}" target="_blank">查看日志</a>` : ''}`;
+          links.innerHTML = `${retryLink(job)}${job.log_url ? `<a href="${apiUrl(job.log_url)}" target="_blank">查看日志</a>` : ''}`;
           button.disabled = false;
           clearInterval(timer);
           loadHistory();
@@ -335,8 +312,6 @@
       });
 
       links.addEventListener('click', event => {
-        const repairButton = event.target.closest('[data-repair-job-id]');
-        if (repairButton) repairJob(repairButton.dataset.repairJobId);
         const retryButton = event.target.closest('[data-retry-job-id]');
         if (retryButton) retryJob(retryButton.dataset.retryJobId);
         const appendixButton = event.target.closest('[data-appendix-job-id]');
