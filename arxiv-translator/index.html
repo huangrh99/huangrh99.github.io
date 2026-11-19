@@ -25,13 +25,14 @@
       .history-head h2 { margin: 0; font-size: 19px; }
       .history-search { max-width: 300px; padding: 10px 12px; font-size: 14px; }
       .history-list { display: grid; gap: 10px; margin-top: 16px; }
-      .history-item { width: 100%; text-align: left; border: 1px solid #e2e7f0; background: #fbfcff; color: #172033; border-radius: 12px; padding: 13px 14px; cursor: pointer; }
+      .history-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; width: 100%; text-align: left; border: 1px solid #e2e7f0; background: #fbfcff; color: #172033; border-radius: 12px; padding: 13px 14px; cursor: pointer; overflow: hidden; }
       .history-item:hover { border-color: #9db4ee; background: #f4f7ff; }
-      .history-main { display: flex; justify-content: space-between; gap: 12px; }
+      .history-main { display: contents; }
       .history-id { font-weight: 700; }
-      .history-meta { color: #697589; font-size: 13px; margin-top: 6px; }
+      .history-status { white-space: nowrap; }
+      .history-meta { grid-column: 1 / -1; min-width: 0; color: #697589; font-size: 13px; line-height: 1.5; margin-top: 6px; overflow-wrap: anywhere; }
       .history-empty { color: #697589; padding: 12px 0; }
-      .history-actions { margin-top: 8px; font-size: 14px; }
+      .history-actions { grid-column: 1 / -1; margin-top: 8px; font-size: 14px; }
       details { margin-top: 18px; color: #596579; }
       summary { cursor: pointer; font-weight: 650; color: #39465d; }
       .backend-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
@@ -85,6 +86,7 @@
       </div>
     </main>
     <script src="config.js"></script>
+    <script src="formatters.js"></script>
     <script>
       const form = document.getElementById('job-form');
       const button = document.getElementById('submit');
@@ -216,20 +218,6 @@
         return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
       }
 
-      function tokenSummary(job) {
-        const total = Number(job.total_tokens);
-        if (!Number.isFinite(total)) return '';
-        const input = Number(job.input_tokens) || 0;
-        const cached = Number(job.cached_input_tokens) || 0;
-        const output = Number(job.output_tokens) || 0;
-        const reasoning = Number(job.reasoning_output_tokens) || 0;
-        const uncached = Math.max(0, input - cached);
-        const cost = Number(job.cost_usd);
-        const model = job.pricing_model ? `（${job.pricing_model} Standard）` : '';
-        const costText = Number.isFinite(cost) ? `，估算成本 $${cost.toFixed(6)} USD${model}` : '';
-        return `累计 ${total} tokens（输入 ${input}，缓存输入 ${cached}，未缓存输入 ${uncached}，输出 ${output}，其中推理 ${reasoning}${costText}）`;
-      }
-
       function historyStatus(job) {
         const labels = {completed: '已完成', failed: '失败', running: '进行中', queued: '排队中'};
         return labels[job.status] || job.status;
@@ -242,10 +230,10 @@
         }
         historyList.innerHTML = jobs.map(job => {
           const updated = job.updated_at ? new Date(job.updated_at * 1000).toLocaleString() : '';
-          const tokens = tokenSummary(job) ? ` · ${tokenSummary(job)}` : '';
+          const tokens = window.arxivTokenSummary(job) ? ` · ${window.arxivTokenSummary(job)}` : '';
           const displayId = job.display_arxiv_id || job.arxiv_id;
           const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions"><a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">阅读中文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">对照阅读</a></div>` : '';
-          return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span>${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
+          return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span class="history-status">${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
         }).join('');
       }
 
@@ -265,7 +253,7 @@
         statusBox.hidden = false;
         progress.value = job.progress || 0;
         message.className = job.status === 'failed' ? 'error' : job.status === 'completed' ? 'success' : '';
-        const tokenText = tokenSummary(job) ? `，${tokenSummary(job)}` : '';
+        const tokenText = window.arxivTokenSummary(job) ? `，${window.arxivTokenSummary(job)}` : '';
         message.textContent = job.error ? `${job.message}\n${job.error}${tokenText}` : `${job.message}（${job.progress || 0}%${tokenText}）`;
         if (job.status === 'completed') {
           links.innerHTML = resultLinks(job);

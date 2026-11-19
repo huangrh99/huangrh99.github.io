@@ -52,6 +52,7 @@
       <div id="pdf-viewer" hidden></div>
     </main>
     <script src="config.js"></script>
+    <script src="formatters.js"></script>
     <script type="module">
       import { createPdfViewer } from './pdf-viewer.js';
 
@@ -80,19 +81,6 @@
       const apiBase = (configuredApiBase || inferBackendBase()).replace(/\/+$/, '');
       function apiUrl(path) { return `${apiBase}${path}`; }
       function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character])); }
-      function tokenSummary(job) {
-        const total = Number(job.total_tokens);
-        if (!Number.isFinite(total)) return '';
-        const input = Number(job.input_tokens) || 0;
-        const cached = Number(job.cached_input_tokens) || 0;
-        const output = Number(job.output_tokens) || 0;
-        const reasoning = Number(job.reasoning_output_tokens) || 0;
-        const cost = Number(job.cost_usd);
-        const model = job.pricing_model ? `（${job.pricing_model} Standard）` : '';
-        const costText = Number.isFinite(cost) ? `，估算成本 $${cost.toFixed(6)} USD${model}` : '';
-        return `累计 ${total} tokens（输入 ${input}，缓存输入 ${cached}，未缓存输入 ${Math.max(0, input - cached)}，输出 ${output}，其中推理 ${reasoning}${costText}）`;
-      }
-
       document.getElementById('fullscreen').addEventListener('click', async () => {
         if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
         else await document.exitFullscreen?.();
@@ -113,7 +101,7 @@
             return;
           }
           actions.innerHTML = `<a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank" rel="noreferrer">下载中文 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">打开原文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}">对照阅读</a>`;
-          status.textContent = tokenSummary(job);
+          status.textContent = window.arxivTokenSummary(job);
           viewerRoot.hidden = false;
           await createPdfViewer(viewerRoot, apiUrl(job.pdf_url));
         } catch (error) {
