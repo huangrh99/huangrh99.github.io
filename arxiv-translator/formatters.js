@@ -60,6 +60,18 @@
     return `${compactToken(total)} tokens${Number.isFinite(cost) ? ` · $${trimDecimal(cost.toFixed(2))}` : ''}`;
   }
 
+  function formatDuration(seconds) {
+    const total = Math.round(Number(seconds) || 0);
+    if (total <= 0) return '';
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const rest = total % 60;
+    if (hours) return `${hours}小时${String(minutes).padStart(2, '0')}分`;
+    if (minutes) return `${minutes}分${String(rest).padStart(2, '0')}秒`;
+    return `${rest}秒`;
+  }
+
+  window.arxivDuration = job => formatDuration(job && job.elapsed_seconds);
   window.arxivTokenStats = tokenStats;
   window.arxivTokenBrief = tokenBrief;
   window.arxivCompactToken = compactToken;

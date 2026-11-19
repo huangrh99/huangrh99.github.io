@@ -49,10 +49,10 @@
       <div id="notice" class="notice">正在读取任务…</div>
       <div id="pdf-viewer" hidden></div>
     </main>
-    <script src="config.js?v=20261120d"></script>
-    <script src="formatters.js?v=20261120d"></script>
+    <script src="config.js?v=20261120g"></script>
+    <script src="formatters.js?v=20261120g"></script>
     <script type="module">
-      import { createPdfViewer } from './pdf-viewer.js?v=20261120d';
+      import { createPdfViewer } from './pdf-viewer.js?v=20261120g';
 
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get('job') || '';
@@ -132,7 +132,8 @@
           title.title = job.title || '';
           compareLink.href = `./compare.html?job=${encodeURIComponent(job.id)}`;
           const tokens = window.arxivTokenSummary(job);
-          infoPanel.innerHTML = `<div>${escapeHtml(displayId)} · ${escapeHtml(job.message)}</div>${tokens ? `<div>${escapeHtml(tokens)}</div>` : ''}<div>${job.pdf_url ? `<a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank" rel="noreferrer">下载中文 PDF</a>` : ''}<a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">原文 PDF</a><a href="${escapeHtml(job.arxiv_url)}" target="_blank" rel="noreferrer">arXiv 页面</a></div>`;
+          const duration = window.arxivDuration ? window.arxivDuration(job) : '';
+          infoPanel.innerHTML = `<div>${escapeHtml(displayId)} · ${escapeHtml(job.message)}</div>${tokens ? `<div>${escapeHtml(tokens)}</div>` : ''}${duration ? `<div>耗时 ${escapeHtml(duration)}</div>` : ''}<div>${job.pdf_url ? `<a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank" rel="noreferrer">下载中文 PDF</a>` : ''}<a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">原文 PDF</a><a href="${escapeHtml(job.arxiv_url)}" target="_blank" rel="noreferrer">arXiv 页面</a></div>`;
           if (job.status !== 'completed' || !job.pdf_url) {
             showNotice(job.error || `翻译任务尚未完成：${job.message || job.status}`, job.status === 'failed');
             return;

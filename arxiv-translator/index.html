@@ -28,6 +28,7 @@
       .job-badge.queued { background: #f1f3f7; color: #596579; }
       .job-sub { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 6px; color: #596579; font-size: 14px; }
       .job-sub span[hidden] { display: none; }
+      .job-elapsed { color: #697589; font-variant-numeric: tabular-nums; }
       .job-percent { margin-left: auto; color: #172033; font-weight: 650; font-variant-numeric: tabular-nums; }
       .job-bar { height: 6px; margin-top: 10px; border-radius: 999px; background: #e2e8f3; overflow: hidden; }
       .job-bar > i { display: block; height: 100%; width: 0; border-radius: inherit; background: #2457d6; transition: width .4s ease; }
@@ -104,7 +105,7 @@
                 <div id="job-title" class="job-title"></div>
                 <span id="job-badge" class="job-badge"></span>
               </div>
-              <div class="job-sub"><span id="job-id"></span><span id="job-stage"></span><span id="job-percent" class="job-percent"></span></div>
+              <div class="job-sub"><span id="job-id"></span><span id="job-stage"></span><span id="job-elapsed" class="job-elapsed"></span><span id="job-percent" class="job-percent"></span></div>
               <div class="job-bar" aria-hidden="true"><i id="job-bar-fill"></i></div>
               <div id="job-error" class="job-error" hidden></div>
               <div id="job-stats" class="job-stats"></div>
@@ -122,8 +123,8 @@
         </section>
       </div>
     </main>
-    <script src="config.js?v=20261120f"></script>
-    <script src="formatters.js?v=20261120f"></script>
+    <script src="config.js?v=20261120g"></script>
+    <script src="formatters.js?v=20261120g"></script>
     <script>
       const form = document.getElementById('job-form');
       const button = document.getElementById('submit');
@@ -135,6 +136,7 @@
       const jobId = document.getElementById('job-id');
       const jobStage = document.getElementById('job-stage');
       const jobPercent = document.getElementById('job-percent');
+      const jobElapsed = document.getElementById('job-elapsed');
       const jobBarFill = document.getElementById('job-bar-fill');
       const jobError = document.getElementById('job-error');
       const jobStats = document.getElementById('job-stats');
@@ -275,7 +277,8 @@
         historyList.innerHTML = jobs.map(job => {
           const updated = job.updated_at ? new Date(job.updated_at * 1000).toLocaleString() : '';
           const brief = window.arxivTokenBrief ? window.arxivTokenBrief(job) : '';
-          const tokens = brief ? ` · <span title="${escapeHtml(window.arxivTokenSummary(job))}">${escapeHtml(brief)}</span>` : '';
+          const duration = window.arxivDuration ? window.arxivDuration(job) : '';
+          const tokens = (duration ? ` · 用时 ${escapeHtml(duration)}` : '') + (brief ? ` · <span title="${escapeHtml(window.arxivTokenSummary(job))}">${escapeHtml(brief)}</span>` : '');
           const displayId = job.display_arxiv_id || job.arxiv_id;
           const pendingAppendix = typeof window.arxivPendingAppendixCount === 'function' ? window.arxivPendingAppendixCount(job) : 0;
           const appendixAction = pendingAppendix ? `<button class="appendix-button history-appendix" data-appendix-job-id="${escapeHtml(job.id)}" type="button">继续翻译 Appendix（${pendingAppendix} 个文件）</button>` : '';
@@ -317,6 +320,9 @@
         jobId.hidden = !jobId.textContent;
         jobStage.textContent = job.message || '';
         jobPercent.textContent = `${percent}%`;
+        const duration = window.arxivDuration ? window.arxivDuration(job) : '';
+        jobElapsed.textContent = duration ? `用时 ${duration}` : '';
+        jobElapsed.hidden = !duration;
         jobBadge.textContent = historyStatus(job);
         jobBadge.className = `job-badge ${job.status || ''}`;
         jobCard.dataset.status = job.status || '';
