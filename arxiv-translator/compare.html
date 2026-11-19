@@ -85,10 +85,10 @@
         <div class="viewer-host" id="translated-viewer"></div>
       </section>
     </main>
-    <script src="config.js?v=20261120g"></script>
-    <script src="formatters.js?v=20261120g"></script>
+    <script src="config.js?v=20261120h"></script>
+    <script src="formatters.js?v=20261120h"></script>
     <script type="module">
-      import { createPdfViewer } from './pdf-viewer.js?v=20261120g';
+      import { createPdfViewer } from './pdf-viewer.js?v=20261120h';
 
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get('job') || '';
@@ -231,7 +231,7 @@
           title.title = job.title || '';
           const tokens = window.arxivTokenSummary(job);
           const duration = window.arxivDuration ? window.arxivDuration(job) : '';
-          infoBody.innerHTML = `<div>${escapeHtml(displayId)} · ${escapeHtml(job.message)}</div>${tokens ? `<div>${escapeHtml(tokens)}</div>` : ''}${duration ? `<div>耗时 ${escapeHtml(duration)}</div>` : ''}<div><a href="${escapeHtml(job.arxiv_url)}" target="_blank" rel="noreferrer">arXiv 页面</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">原文 PDF</a>${job.pdf_url ? `<a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">单独阅读中文 PDF</a><a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank" rel="noreferrer">下载中文 PDF</a>` : ''}</div>`;
+          infoBody.innerHTML = `<div>${escapeHtml(displayId)} · ${escapeHtml(job.message)}</div>${tokens ? `<div>${escapeHtml(tokens)}</div>` : ''}${duration ? `<div>耗时 ${escapeHtml(duration)}</div>` : ''}${Array.isArray(job.quality_issues) && job.quality_issues.length ? `<div style="margin-top:6px;color:#8a5a00">PDF 仍有问题：${job.quality_issues.map(escapeHtml).join('；')}</div>` : ''}<div><a href="${escapeHtml(job.arxiv_url)}" target="_blank" rel="noreferrer">arXiv 页面</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">原文 PDF</a>${job.pdf_url ? `<a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">单独阅读中文 PDF</a><a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank" rel="noreferrer">下载中文 PDF</a>` : ''}</div>`;
           if (job.status !== 'completed' || !job.pdf_url) {
             showNotice(job.error || `翻译任务尚未完成：${job.message || job.status}`, job.status === 'failed');
             return;
