@@ -17,6 +17,7 @@
       input { box-sizing: border-box; width: 100%; padding: 13px 14px; border: 1px solid #cbd4e2; border-radius: 10px; font-size: 16px; }
       button { margin-top: 16px; border: 0; border-radius: 10px; padding: 12px 18px; background: #2457d6; color: white; font-size: 15px; cursor: pointer; }
       button:disabled { opacity: .55; cursor: wait; }
+      #message { white-space: pre-line; }
       #status { margin-top: 24px; padding: 16px; border-radius: 12px; background: #f0f4fb; min-height: 42px; }
       progress { width: 100%; height: 12px; margin-top: 12px; }
       a { color: #2457d6; margin-right: 14px; }
@@ -31,6 +32,7 @@
       .history-main { display: contents; }
       .history-id { font-weight: 700; }
       .history-status { white-space: nowrap; }
+      .history-title { grid-column: 1 / -1; margin-top: 4px; color: #253049; font-size: 15px; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
       .history-meta { grid-column: 1 / -1; min-width: 0; color: #697589; font-size: 13px; line-height: 1.5; margin-top: 6px; overflow-wrap: anywhere; }
       .history-empty { color: #697589; padding: 12px 0; }
       .history-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 8px; font-size: 14px; }
@@ -83,14 +85,14 @@
         <section class="card">
           <div class="history-head">
             <h2>历史翻译</h2>
-            <input id="history-query" class="history-search" placeholder="搜索 arXiv ID 或链接" aria-label="搜索历史翻译">
+            <input id="history-query" class="history-search" placeholder="搜索标题、arXiv ID 或链接" aria-label="搜索历史翻译">
           </div>
           <div id="history-list" class="history-list"><div class="history-empty">正在读取历史任务…</div></div>
         </section>
       </div>
     </main>
-    <script src="config.js?v=20261120c"></script>
-    <script src="formatters.js?v=20261120c"></script>
+    <script src="config.js?v=20261120d"></script>
+    <script src="formatters.js?v=20261120d"></script>
     <script>
       const form = document.getElementById('job-form');
       const button = document.getElementById('submit');
@@ -238,7 +240,7 @@
           const pendingAppendix = typeof window.arxivPendingAppendixCount === 'function' ? window.arxivPendingAppendixCount(job) : 0;
           const appendixAction = pendingAppendix ? `<button class="appendix-button history-appendix" data-appendix-job-id="${escapeHtml(job.id)}" type="button">继续翻译 Appendix（${pendingAppendix} 个文件）</button>` : '';
           const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions">${appendixAction}<a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">翻译阅读</a></div>` : '';
-          return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span class="history-status">${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
+          return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span class="history-status">${historyStatus(job)}</span></div>${job.title ? `<div class="history-title">${escapeHtml(job.title)}</div>` : ''}<div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
         }).join('');
       }
 
@@ -268,7 +270,8 @@
         progress.value = job.progress || 0;
         message.className = job.status === 'failed' ? 'error' : job.status === 'completed' ? 'success' : '';
         const tokenText = window.arxivTokenSummary(job) ? `，${window.arxivTokenSummary(job)}` : '';
-        message.textContent = job.error ? `${job.message}\n${job.error}${tokenText}` : `${job.message}（${job.progress || 0}%${tokenText}）`;
+        const titleText = job.title ? `${job.title}\n` : '';
+        message.textContent = job.error ? `${titleText}${job.message}\n${job.error}${tokenText}` : `${titleText}${job.message}（${job.progress || 0}%${tokenText}）`;
         if (job.status !== 'completed' && job.status !== 'failed') links.innerHTML = '';
         if (job.status === 'completed') {
           links.innerHTML = resultLinks(job);

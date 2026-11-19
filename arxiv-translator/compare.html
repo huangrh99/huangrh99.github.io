@@ -85,10 +85,10 @@
         <div class="viewer-host" id="translated-viewer"></div>
       </section>
     </main>
-    <script src="config.js?v=20261120b"></script>
-    <script src="formatters.js?v=20261120b"></script>
+    <script src="config.js?v=20261120d"></script>
+    <script src="formatters.js?v=20261120d"></script>
     <script type="module">
-      import { createPdfViewer } from './pdf-viewer.js?v=20261120b';
+      import { createPdfViewer } from './pdf-viewer.js?v=20261120d';
 
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get('job') || '';
@@ -227,7 +227,8 @@
           if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
           const displayId = job.display_arxiv_id || job.arxiv_id;
           document.title = `${displayId} · 对照阅读`;
-          title.textContent = `${displayId} · 对照阅读`;
+          title.textContent = job.title ? `${displayId} · ${job.title}` : `${displayId} · 对照阅读`;
+          title.title = job.title || '';
           const tokens = window.arxivTokenSummary(job);
           infoBody.innerHTML = `<div>${escapeHtml(displayId)} · ${escapeHtml(job.message)}</div>${tokens ? `<div>${escapeHtml(tokens)}</div>` : ''}<div><a href="${escapeHtml(job.arxiv_url)}" target="_blank" rel="noreferrer">arXiv 页面</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">原文 PDF</a>${job.pdf_url ? `<a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">单独阅读中文 PDF</a><a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank" rel="noreferrer">下载中文 PDF</a>` : ''}</div>`;
           if (job.status !== 'completed' || !job.pdf_url) {
