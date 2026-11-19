@@ -17,9 +17,31 @@
       input { box-sizing: border-box; width: 100%; padding: 13px 14px; border: 1px solid #cbd4e2; border-radius: 10px; font-size: 16px; }
       button { margin-top: 16px; border: 0; border-radius: 10px; padding: 12px 18px; background: #2457d6; color: white; font-size: 15px; cursor: pointer; }
       button:disabled { opacity: .55; cursor: wait; }
-      #message { white-space: pre-line; }
-      #status { margin-top: 24px; padding: 16px; border-radius: 12px; background: #f0f4fb; min-height: 42px; }
-      progress { width: 100%; height: 12px; margin-top: 12px; }
+      #status { margin-top: 24px; padding: 18px 18px 16px; border-radius: 14px; background: #f5f8fe; border: 1px solid #e2e9f6; }
+      #message:empty { display: none; }
+      #message { margin-top: 10px; white-space: pre-line; }
+      .job-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+      .job-title { min-width: 0; color: #172033; font-size: 17px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+      .job-badge { flex: 0 0 auto; padding: 3px 10px; border-radius: 999px; background: #e6edfb; color: #2457d6; font-size: 12px; font-weight: 650; white-space: nowrap; }
+      .job-badge.completed { background: #e3f4ea; color: #16764a; }
+      .job-badge.failed { background: #fdecea; color: #b42318; }
+      .job-badge.queued { background: #f1f3f7; color: #596579; }
+      .job-sub { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 6px; color: #596579; font-size: 14px; }
+      .job-sub span[hidden] { display: none; }
+      .job-percent { margin-left: auto; color: #172033; font-weight: 650; font-variant-numeric: tabular-nums; }
+      .job-bar { height: 6px; margin-top: 10px; border-radius: 999px; background: #e2e8f3; overflow: hidden; }
+      .job-bar > i { display: block; height: 100%; width: 0; border-radius: inherit; background: #2457d6; transition: width .4s ease; }
+      #job-card[data-status="completed"] .job-bar > i { background: #16a34a; }
+      #job-card[data-status="failed"] .job-bar > i { background: #b42318; }
+      .job-error { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #fdecea; color: #b42318; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .job-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(108px, 1fr)); gap: 8px; margin-top: 14px; }
+      .job-stats:empty { display: none; }
+      .job-stat { display: flex; flex-direction: column; gap: 2px; padding: 9px 11px; border: 1px solid #e2e9f6; border-radius: 10px; background: #fff; }
+      .job-stat span { color: #697589; font-size: 12px; }
+      .job-stat strong { color: #172033; font-size: 17px; font-variant-numeric: tabular-nums; }
+      .job-stat small { color: #8a94a8; font-size: 12px; }
+      #links:empty { display: none; }
+      #links { margin-top: 14px; }
       a { color: #2457d6; margin-right: 14px; }
       .error { color: #b42318; white-space: pre-wrap; }
       .success { color: #16764a; }
@@ -77,9 +99,18 @@
             <p class="hint">GitHub Pages 页面需要填入可从浏览器访问的 HTTPS 后端地址。地址只保存在当前浏览器。</p>
           </details>
           <div id="status" hidden>
+            <div id="job-card" hidden>
+              <div class="job-head">
+                <div id="job-title" class="job-title"></div>
+                <span id="job-badge" class="job-badge"></span>
+              </div>
+              <div class="job-sub"><span id="job-id"></span><span id="job-stage"></span><span id="job-percent" class="job-percent"></span></div>
+              <div class="job-bar" aria-hidden="true"><i id="job-bar-fill"></i></div>
+              <div id="job-error" class="job-error" hidden></div>
+              <div id="job-stats" class="job-stats"></div>
+            </div>
             <div id="message"></div>
-            <progress id="progress" max="100" value="0"></progress>
-            <div id="links" style="margin-top: 14px"></div>
+            <div id="links"></div>
           </div>
         </section>
         <section class="card">
@@ -91,14 +122,22 @@
         </section>
       </div>
     </main>
-    <script src="config.js?v=20261120e"></script>
-    <script src="formatters.js?v=20261120e"></script>
+    <script src="config.js?v=20261120f"></script>
+    <script src="formatters.js?v=20261120f"></script>
     <script>
       const form = document.getElementById('job-form');
       const button = document.getElementById('submit');
       const statusBox = document.getElementById('status');
       const message = document.getElementById('message');
-      const progress = document.getElementById('progress');
+      const jobCard = document.getElementById('job-card');
+      const jobTitle = document.getElementById('job-title');
+      const jobBadge = document.getElementById('job-badge');
+      const jobId = document.getElementById('job-id');
+      const jobStage = document.getElementById('job-stage');
+      const jobPercent = document.getElementById('job-percent');
+      const jobBarFill = document.getElementById('job-bar-fill');
+      const jobError = document.getElementById('job-error');
+      const jobStats = document.getElementById('job-stats');
       const links = document.getElementById('links');
       const historyQuery = document.getElementById('history-query');
       const historyList = document.getElementById('history-list');
@@ -235,7 +274,8 @@
         }
         historyList.innerHTML = jobs.map(job => {
           const updated = job.updated_at ? new Date(job.updated_at * 1000).toLocaleString() : '';
-          const tokens = window.arxivTokenSummary(job) ? ` · ${window.arxivTokenSummary(job)}` : '';
+          const brief = window.arxivTokenBrief ? window.arxivTokenBrief(job) : '';
+          const tokens = brief ? ` · <span title="${escapeHtml(window.arxivTokenSummary(job))}">${escapeHtml(brief)}</span>` : '';
           const displayId = job.display_arxiv_id || job.arxiv_id;
           const pendingAppendix = typeof window.arxivPendingAppendixCount === 'function' ? window.arxivPendingAppendixCount(job) : 0;
           const appendixAction = pendingAppendix ? `<button class="appendix-button history-appendix" data-appendix-job-id="${escapeHtml(job.id)}" type="button">继续翻译 Appendix（${pendingAppendix} 个文件）</button>` : '';
@@ -267,11 +307,23 @@
 
       function showJob(job) {
         statusBox.hidden = false;
-        progress.value = job.progress || 0;
-        message.className = job.status === 'failed' ? 'error' : job.status === 'completed' ? 'success' : '';
-        const tokenText = window.arxivTokenSummary(job) ? `，${window.arxivTokenSummary(job)}` : '';
-        const titleText = job.title ? `${job.title}\n` : '';
-        message.textContent = job.error ? `${titleText}${job.message}\n${job.error}${tokenText}` : `${titleText}${job.message}（${job.progress || 0}%${tokenText}）`;
+        jobCard.hidden = false;
+        message.className = '';
+        message.textContent = '';
+        const displayId = job.display_arxiv_id || job.arxiv_id || '';
+        const percent = Math.max(0, Math.min(100, Number(job.progress) || 0));
+        jobTitle.textContent = job.title || displayId;
+        jobId.textContent = job.title && displayId ? `arXiv ${displayId}` : '';
+        jobId.hidden = !jobId.textContent;
+        jobStage.textContent = job.message || '';
+        jobPercent.textContent = `${percent}%`;
+        jobBadge.textContent = historyStatus(job);
+        jobBadge.className = `job-badge ${job.status || ''}`;
+        jobCard.dataset.status = job.status || '';
+        jobBarFill.style.width = `${percent}%`;
+        jobError.hidden = !job.error;
+        jobError.textContent = job.error || '';
+        jobStats.innerHTML = window.arxivTokenStats(job).map(stat => `<div class="job-stat"><span>${escapeHtml(stat.label)}</span><strong>${escapeHtml(stat.value)}</strong>${stat.detail ? `<small>${escapeHtml(stat.detail)}</small>` : ''}</div>`).join('');
         if (job.status !== 'completed' && job.status !== 'failed') links.innerHTML = '';
         if (job.status === 'completed') {
           links.innerHTML = resultLinks(job);
