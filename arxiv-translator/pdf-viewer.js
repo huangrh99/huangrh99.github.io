@@ -46,9 +46,14 @@ export async function createPdfViewer(root, source, { onPageChange } = {}) {
   status.textContent = '正在加载 PDF…';
   const stage = document.createElement('div');
   stage.className = 'pdf-page-stage';
+  const pageFrame = document.createElement('div');
+  pageFrame.className = 'pdf-page-frame';
   const canvas = document.createElement('canvas');
   canvas.className = 'pdf-page-canvas';
-  stage.append(canvas);
+  const textLayer = document.createElement('div');
+  textLayer.className = 'pdf-text-layer';
+  pageFrame.append(canvas, textLayer);
+  stage.append(pageFrame);
   root.append(toolbar, status, stage);
 
   let pdf;
@@ -80,12 +85,24 @@ export async function createPdfViewer(root, source, { onPageChange } = {}) {
     canvas.height = Math.ceil(viewport.height * ratio);
     canvas.style.width = `${Math.ceil(viewport.width)}px`;
     canvas.style.height = `${Math.ceil(viewport.height)}px`;
+    pageFrame.style.width = `${Math.ceil(viewport.width)}px`;
+    pageFrame.style.height = `${Math.ceil(viewport.height)}px`;
+    textLayer.replaceChildren();
+    textLayer.style.width = `${Math.ceil(viewport.width)}px`;
+    textLayer.style.height = `${Math.ceil(viewport.height)}px`;
     const context = canvas.getContext('2d', { alpha: false });
-    await page.render({
+    const renderTask = page.render({
       canvasContext: context,
       viewport,
       transform: ratio === 1 ? undefined : [ratio, 0, 0, ratio, 0, 0],
-    }).promise;
+    });
+    const textContent = await page.getTextContent();
+    const textLayerTask = new pdfjsLib.TextLayer({
+      textContentSource: textContent,
+      container: textLayer,
+      viewport,
+    });
+    await Promise.all([renderTask.promise, textLayerTask.render()]);
     if (currentRender === renderId) {
       status.textContent = `第 ${pageNumber} / ${pdf.numPages} 页`;
       onPageChange?.(pageNumber);
@@ -93,6 +110,7 @@ export async function createPdfViewer(root, source, { onPageChange } = {}) {
   }
 
   function setPage(value) {
+    if (!pdf) return;
     const nextPage = Math.min(Math.max(Number.parseInt(value, 10) || 1, 1), pdf.numPages);
     if (nextPage === pageNumber) return;
     pageNumber = nextPage;
@@ -132,4 +150,10 @@ export async function createPdfViewer(root, source, { onPageChange } = {}) {
   } catch (error) {
     showError(error);
   }
+
+  return {
+    setPage,
+    getPage: () => pageNumber,
+    getPageCount: () => pdf?.numPages || 0,
+  };
 }

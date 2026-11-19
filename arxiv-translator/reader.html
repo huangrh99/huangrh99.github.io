@@ -6,36 +6,50 @@
     <title>Arxiv Translation 中文 PDF</title>
     <style>
       :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
-      body { margin: 0; background: #f5f7fb; color: #172033; }
-      main { max-width: 1240px; margin: 28px auto; padding: 0 20px 32px; }
-      .card { background: white; border: 1px solid #e2e7f0; border-radius: 18px; padding: 22px; box-shadow: 0 12px 36px rgba(27, 45, 80, .08); }
-      h1 { margin: 0 0 8px; font-size: 25px; }
-      p { color: #596579; line-height: 1.6; }
-      a { color: #2457d6; margin-right: 14px; }
-      .error { color: #b42318; white-space: pre-wrap; }
-      .pdf-viewer { margin-top: 18px; border: 1px solid #d9e0ec; border-radius: 12px; overflow: hidden; background: #eef2f8; }
-      .pdf-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; background: #172033; color: #fff; }
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; overflow: hidden; }
+      body { margin: 0; background: #eef2f8; color: #172033; }
+      main { width: 100%; height: 100vh; display: flex; flex-direction: column; }
+      .reader-topbar { flex: 0 0 auto; min-height: 58px; display: flex; align-items: center; gap: 16px; padding: 9px 18px; background: rgba(255, 255, 255, .96); border-bottom: 1px solid #dbe2ed; box-shadow: 0 4px 18px rgba(27, 45, 80, .08); z-index: 2; }
+      .reader-brand { color: #172033; font-weight: 750; text-decoration: none; }
+      .reader-title { flex: 1; color: #596579; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .reader-tools a, .reader-tools button { border: 1px solid #d5ddea; border-radius: 7px; background: white; color: #2457d6; padding: 7px 10px; font: inherit; text-decoration: none; cursor: pointer; }
+      .reader-meta { flex: 0 0 auto; min-height: 46px; display: flex; align-items: center; gap: 14px; padding: 6px 18px; background: #f7f9fc; border-bottom: 1px solid #dbe2ed; }
+      .reader-meta p { margin: 0; color: #596579; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      #status { color: #596579; }
+      .error { color: #b42318 !important; white-space: pre-wrap; }
+      #pdf-viewer { flex: 1 1 auto; min-height: 0; }
+      .pdf-viewer { width: 100%; height: 100%; display: flex; flex-direction: column; background: #eef2f8; }
+      .pdf-toolbar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 9px 12px; background: #172033; color: #fff; }
       .pdf-toolbar button, .pdf-toolbar input, .pdf-open-link { border: 1px solid #45516a; border-radius: 7px; background: #26334c; color: #fff; padding: 7px 10px; font: inherit; text-decoration: none; }
       .pdf-toolbar button:disabled { opacity: .45; }
       .pdf-toolbar button.active { background: #2457d6; border-color: #75a0ff; }
       .pdf-toolbar input { width: 58px; text-align: center; }
       .pdf-page-total, .pdf-zoom-label { color: #d4dbea; min-width: 48px; }
-      .pdf-viewer-status { padding: 8px 12px; color: #596579; background: #fff; }
+      .pdf-viewer-status { flex: 0 0 auto; padding: 6px 12px; color: #596579; background: #fff; font-size: 13px; }
       .pdf-viewer-status.error { color: #b42318; }
-      .pdf-page-stage { min-height: 70vh; padding: 14px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+      .pdf-page-stage { flex: 1 1 auto; min-height: 0; padding: 14px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+      .pdf-page-frame { position: relative; flex: 0 0 auto; }
       .pdf-page-canvas { display: block; background: #fff; box-shadow: 0 8px 26px rgba(27, 45, 80, .16); }
-      @media (max-width: 700px) { main { margin: 12px auto; padding: 0 10px 20px; } .card { padding: 14px; } .pdf-toolbar { gap: 5px; padding: 8px; } .pdf-toolbar button, .pdf-toolbar input, .pdf-open-link { padding: 6px 7px; font-size: 13px; } .pdf-page-stage { min-height: 72vh; padding: 8px; } }
+      .pdf-text-layer { position: absolute; inset: 0; overflow: hidden; line-height: 1; transform-origin: 0 0; user-select: text; }
+      .pdf-text-layer span { position: absolute; color: transparent; white-space: pre; cursor: text; transform-origin: 0 0; }
+      .pdf-text-layer ::selection { background: rgba(37, 87, 214, .28); }
+      @media (max-width: 700px) { .reader-topbar { padding: 8px 10px; } .reader-brand { display: none; } .reader-title { font-size: 14px; } .reader-meta { min-height: 40px; padding: 5px 10px; } .reader-tools a, .reader-tools button { padding: 6px 8px; font-size: 13px; } .pdf-toolbar { gap: 5px; padding: 8px; } .pdf-toolbar button, .pdf-toolbar input, .pdf-open-link { padding: 6px 7px; font-size: 13px; } .pdf-page-stage { padding: 8px; } }
     </style>
   </head>
   <body>
     <main>
-      <section class="card">
-        <h1>中文翻译 PDF</h1>
+      <header class="reader-topbar">
+        <a class="reader-brand" href="./">Arxiv Translation</a>
+        <div id="reader-title" class="reader-title">中文翻译 PDF</div>
+        <div class="reader-tools"><button id="fullscreen" type="button">全屏</button><a href="./compare.html" id="compare-link">对照阅读</a></div>
+      </header>
+      <section class="reader-meta">
         <p id="summary">正在读取任务…</p>
         <div id="actions"></div>
         <div id="status"></div>
-        <div id="pdf-viewer" hidden></div>
       </section>
+      <div id="pdf-viewer" hidden></div>
     </main>
     <script src="config.js"></script>
     <script type="module">
@@ -49,6 +63,8 @@
       const actions = document.getElementById('actions');
       const status = document.getElementById('status');
       const viewerRoot = document.getElementById('pdf-viewer');
+      const readerTitle = document.getElementById('reader-title');
+      const compareLink = document.getElementById('compare-link');
 
       function readStoredApiBase() {
         try { return localStorage.getItem('arxiv-translator-api-base') || ''; } catch (error) { return ''; }
@@ -65,6 +81,11 @@
       function apiUrl(path) { return `${apiBase}${path}`; }
       function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character])); }
 
+      document.getElementById('fullscreen').addEventListener('click', async () => {
+        if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
+        else await document.exitFullscreen?.();
+      });
+
       async function load() {
         if (!jobId) { status.className = 'error'; status.textContent = '缺少任务 ID'; return; }
         try {
@@ -72,6 +93,8 @@
           const job = await response.json();
           if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
           summary.textContent = `${job.arxiv_id} · ${job.message}`;
+          readerTitle.textContent = `${job.arxiv_id} · 中文翻译 PDF`;
+          compareLink.href = `./compare.html?job=${encodeURIComponent(job.id)}`;
           if (job.status !== 'completed' || !job.pdf_url) {
             status.className = job.status === 'failed' ? 'error' : '';
             status.textContent = job.error || '翻译任务尚未完成';
