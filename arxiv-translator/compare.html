@@ -5,89 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Arxiv Translation 对照阅读</title>
     <style>
-      :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
+      :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; --split: 50%; }
       * { box-sizing: border-box; }
       html, body { width: 100%; height: 100%; overflow: hidden; }
-      body { margin: 0; background: #eef2f8; color: #172033; }
-      main { width: 100%; height: 100vh; display: flex; flex-direction: column; }
-      .compare-topbar { flex: 0 0 auto; min-height: 58px; display: flex; align-items: center; gap: 18px; padding: 9px 18px; background: rgba(255, 255, 255, .96); border-bottom: 1px solid #dbe2ed; box-shadow: 0 4px 18px rgba(27, 45, 80, .08); z-index: 2; }
-      .compare-brand { color: #172033; font-weight: 750; text-decoration: none; white-space: nowrap; }
-      .compare-title { flex: 1; min-width: 0; color: #596579; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .compare-tabs { display: flex; gap: 3px; padding: 3px; border-radius: 9px; background: #eef2f8; }
-      .compare-tabs button, .compare-tool { border: 0; border-radius: 7px; background: transparent; color: #596579; padding: 8px 12px; font: inherit; cursor: pointer; white-space: nowrap; }
-      .compare-tabs button.active, .compare-tool.active { background: #2457d6; color: white; }
-      .compare-tools { display: flex; align-items: center; gap: 5px; }
-      .compare-tool { border: 1px solid #d5ddea; background: white; text-decoration: none; }
-      .compare-meta { flex: 0 0 auto; min-height: 50px; display: flex; align-items: center; gap: 16px; padding: 7px 18px; background: #f7f9fc; border-bottom: 1px solid #dbe2ed; }
-      .compare-meta p { margin: 0; color: #596579; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      #status { color: #596579; white-space: nowrap; }
-      .compare-actions { display: flex; gap: 12px; margin-left: auto; white-space: nowrap; }
-      .compare-actions a { color: #2457d6; }
-      .error { color: #b42318 !important; white-space: pre-wrap; }
-      .viewer-grid { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 12px; }
-      .viewer { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: white; border: 1px solid #d9e0ec; border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(27, 45, 80, .08); }
-      .viewer-heading { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; font-size: 17px; font-weight: 750; }
-      .viewer-host { flex: 1 1 auto; min-height: 0; }
-      .pdf-viewer { width: 100%; height: 100%; display: flex; flex-direction: column; border-top: 1px solid #d9e0ec; background: #eef2f8; }
-      .pdf-toolbar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding: 8px 10px; background: #172033; color: #fff; }
-      .pdf-toolbar button, .pdf-toolbar input, .pdf-open-link { border: 1px solid #45516a; border-radius: 7px; background: #26334c; color: #fff; padding: 7px 10px; font: inherit; text-decoration: none; }
-      .pdf-toolbar button:disabled { opacity: .45; }
-      .pdf-toolbar button.active { background: #2457d6; border-color: #75a0ff; }
-      .pdf-toolbar input { width: 58px; text-align: center; }
-      .pdf-page-total, .pdf-zoom-label { color: #d4dbea; min-width: 48px; }
-      .pdf-viewer-status { flex: 0 0 auto; padding: 6px 10px; color: #596579; background: #fff; font-size: 13px; }
-      .pdf-viewer-status.error { color: #b42318; }
-      .pdf-page-stage { flex: 1 1 auto; min-height: 0; padding: 14px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
-      .pdf-page-frame { position: relative; flex: 0 0 auto; }
-      .pdf-page-canvas { display: block; background: #fff; box-shadow: 0 8px 26px rgba(27, 45, 80, .16); }
-      .pdf-text-layer { position: absolute; inset: 0; overflow: hidden; line-height: 1; transform-origin: 0 0; user-select: text; }
-      .pdf-text-layer span { position: absolute; color: transparent; white-space: pre; cursor: text; transform-origin: 0 0; }
-      .pdf-text-layer ::selection { background: rgba(37, 87, 214, .28); }
-      body[data-mode="original"] #translated-panel, body[data-mode="translated"] #original-panel { display: none; }
-      body[data-mode="original"] .viewer-grid, body[data-mode="translated"] .viewer-grid { grid-template-columns: minmax(0, 1fr); }
+      body { margin: 0; background: #e9edf4; color: #172033; }
+      main { width: 100%; height: 100dvh; display: flex; flex-direction: column; }
+      .topbar { flex: 0 0 auto; height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 14px; background: #fff; border-bottom: 1px solid #dbe2ed; z-index: 3; }
+      .brand { color: #172033; font-weight: 750; text-decoration: none; white-space: nowrap; }
+      .title { flex: 1; min-width: 0; color: #596579; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .tabs { display: flex; gap: 2px; padding: 3px; border-radius: 9px; background: #eef2f8; }
+      .tabs button { border: 0; border-radius: 6px; background: transparent; color: #596579; padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
+      .tabs button.active { background: #fff; color: #172033; box-shadow: 0 1px 3px rgba(23, 32, 51, .15); font-weight: 650; }
+      .tools { display: flex; align-items: center; gap: 6px; }
+      .tool { border: 1px solid #d5ddea; border-radius: 7px; background: #fff; color: #596579; padding: 6px 10px; font: inherit; font-size: 13px; text-decoration: none; cursor: pointer; white-space: nowrap; }
+      .tool:hover { background: #f1f5ff; }
+      .tool.appendix { border-color: #5b4acb; background: #5b4acb; color: #fff; }
+      .tool.appendix:disabled { opacity: .7; cursor: wait; }
+      .tool[hidden] { display: none; }
+      .tool.active { border-color: #2457d6; background: #2457d6; color: #fff; }
+      .info { position: relative; }
+      .info summary { list-style: none; }
+      .info summary::-webkit-details-marker { display: none; }
+      .info-panel { position: absolute; right: 0; top: calc(100% + 6px); width: min(380px, calc(100vw - 24px)); padding: 12px 14px; border: 1px solid #dbe2ed; border-radius: 10px; background: #fff; box-shadow: 0 12px 32px rgba(23, 32, 51, .16); color: #596579; font-size: 13px; line-height: 1.6; z-index: 10; }
+      .info-panel a { display: inline-block; margin: 4px 12px 0 0; color: #2457d6; }
+      .info-panel kbd { padding: 0 5px; border: 1px solid #d5ddea; border-radius: 4px; background: #f7f9fc; font: 12px ui-monospace, monospace; }
+      .notice { margin: auto; padding: 18px 22px; max-width: 560px; border-radius: 12px; background: #fff; color: #596579; box-shadow: 0 8px 24px rgba(23, 32, 51, .1); white-space: pre-wrap; }
+      .notice.error { color: #b42318; }
+      .viewer-grid { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, var(--split)) 8px minmax(0, 1fr); }
+      .viewer-grid[hidden] { display: none; }
+      .viewer-host { min-width: 0; min-height: 0; }
+      .divider { position: relative; cursor: col-resize; background: #d5ddea; touch-action: none; }
+      .divider::after { content: ''; position: absolute; left: 2px; right: 2px; top: 50%; height: 36px; transform: translateY(-50%); border-radius: 2px; background: #9aa6b8; }
+      .divider:hover, .divider.dragging { background: #9db4ee; }
+      body.dragging { cursor: col-resize; user-select: none; }
+      body.dragging .viewer-host { pointer-events: none; }
+      body[data-mode="original"] .viewer-grid, body[data-mode="translated"] .viewer-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+      body[data-mode="original"] #translated-viewer, body[data-mode="translated"] #original-viewer, body:not([data-mode="split"]) .divider { display: none; }
+      body:not([data-mode="split"]) #sync-pages { display: none; }
+      :root.pdf-night body { background: #1b2130; }
+      :root.pdf-night .divider { background: #2c3446; }
       @media (max-width: 900px) {
-        .compare-topbar { gap: 8px; padding: 8px 10px; }
-        .compare-brand { display: none; }
-        .compare-title { font-size: 14px; }
-        .compare-tools .compare-tool:not(.active) { display: none; }
-        .viewer-grid { grid-template-columns: 1fr; }
+        .brand { display: none; }
+        .topbar { gap: 8px; padding: 0 8px; }
+        .viewer-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 6px minmax(0, 1fr); }
+        .divider { cursor: default; }
+        .divider::after { display: none; }
       }
       @media (max-width: 620px) {
-        .compare-title { display: none; }
-        .compare-tabs button, .compare-tool { padding: 7px 8px; font-size: 13px; }
-        .compare-meta { min-height: 40px; padding: 5px 10px; }
-        .compare-actions a:nth-child(n+2), #status { display: none; }
-        .viewer-grid { padding: 6px; gap: 6px; }
-        .viewer-heading { padding: 7px 10px; font-size: 15px; }
-        .pdf-toolbar { gap: 4px; padding: 6px; }
-        .pdf-toolbar button, .pdf-toolbar input, .pdf-open-link { padding: 6px 7px; font-size: 13px; }
+        .title, .hide-narrow { display: none; }
+        .tabs button { padding: 5px 8px; }
+        .tool { padding: 5px 8px; }
       }
     </style>
   </head>
-  <body>
+  <body data-mode="split">
     <main>
-      <header class="compare-topbar">
-        <a class="compare-brand" href="./">Arxiv Translation</a>
-        <div id="compare-title" class="compare-title">对照阅读</div>
-        <nav class="compare-tabs" aria-label="阅读模式">
-          <button type="button" data-mode="original">原文</button>
-          <button type="button" data-mode="translated">译文</button>
-          <button type="button" data-mode="split" class="active">分屏</button>
+      <header class="topbar">
+        <a class="brand" href="./">Arxiv Translation</a>
+        <div id="title" class="title">对照阅读</div>
+        <nav class="tabs" aria-label="阅读模式">
+          <button type="button" data-mode="original" title="仅原文 (1)">原文</button>
+          <button type="button" data-mode="split" class="active" title="左右对照 (2)">对照</button>
+          <button type="button" data-mode="translated" title="仅译文 (3)">译文</button>
         </nav>
-        <div class="compare-tools">
-          <button id="sync-pages" class="compare-tool active" type="button">⇄ 同步页码</button>
-          <button id="fullscreen" class="compare-tool" type="button">全屏</button>
-          <a id="paper-info" class="compare-tool" href="#">论文信息</a>
+        <div class="tools">
+          <button id="appendix" class="tool appendix" type="button" hidden title="当前 PDF 的附录仍为英文原文">翻译附录</button>
+          <button id="sync-pages" class="tool active" type="button" title="滚动一侧时另一侧跟随到相同页面位置 (S)">同步滚动</button>
+          <button id="fullscreen" class="tool hide-narrow" type="button" title="全屏 (F)">全屏</button>
+          <details class="info">
+            <summary class="tool">信息</summary>
+            <div class="info-panel"><div id="info-body">正在读取任务…</div><div style="margin-top:8px">快捷键：<kbd>←</kbd><kbd>→</kbd> 翻页 · <kbd>+</kbd><kbd>-</kbd> 缩放 · <kbd>0</kbd> 适宽 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 模式 · <kbd>S</kbd> 同步 · <kbd>F</kbd> 全屏 · <kbd>Alt</kbd>+<kbd>←</kbd> 返回链接跳转前位置</div></div>
+          </details>
         </div>
       </header>
-      <section class="compare-meta">
-        <p id="summary">正在读取任务…</p>
-        <div id="actions" class="compare-actions"></div>
-        <div id="status"></div>
-      </section>
+      <div id="notice" class="notice">正在读取任务…</div>
       <section id="viewers" class="viewer-grid" hidden>
-        <article id="original-panel" class="viewer"><div class="viewer-heading">原文 PDF</div><div class="viewer-host" id="original-viewer"></div></article>
-        <article id="translated-panel" class="viewer"><div class="viewer-heading">中文翻译 PDF</div><div class="viewer-host" id="translated-viewer"></div></article>
+        <div class="viewer-host" id="original-viewer"></div>
+        <div class="divider" id="divider" role="separator" aria-orientation="vertical" title="拖动调整宽度，双击恢复"></div>
+        <div class="viewer-host" id="translated-viewer"></div>
       </section>
     </main>
     <script src="config.js"></script>
@@ -98,22 +93,25 @@
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get('job') || '';
       const queryApiBase = params.get('api') || '';
-      const storedApiBase = readStoredApiBase();
-      const configuredApiBase = window.ARXIV_API_BASE || queryApiBase || storedApiBase;
-      const summary = document.getElementById('summary');
-      const actions = document.getElementById('actions');
-      const status = document.getElementById('status');
+      const configuredApiBase = window.ARXIV_API_BASE || queryApiBase || readStored('arxiv-translator-api-base');
+      const notice = document.getElementById('notice');
+      const infoBody = document.getElementById('info-body');
       const viewers = document.getElementById('viewers');
-      const paperInfo = document.getElementById('paper-info');
-      const syncPagesButton = document.getElementById('sync-pages');
-      const fullscreenButton = document.getElementById('fullscreen');
-      const modeButtons = [...document.querySelectorAll('[data-mode]')];
+      const title = document.getElementById('title');
+      const syncButton = document.getElementById('sync-pages');
+      const divider = document.getElementById('divider');
+      const modeButtons = [...document.querySelectorAll('.tabs [data-mode]')];
+      const narrow = window.matchMedia('(max-width: 900px)');
       let originalViewer;
       let translatedViewer;
-      let syncPages = true;
+      let activeViewer;
+      let syncPages = readStored('arxiv-compare-sync') !== 'off';
 
-      function readStoredApiBase() {
-        try { return localStorage.getItem('arxiv-translator-api-base') || ''; } catch (error) { return ''; }
+      function readStored(key) {
+        try { return localStorage.getItem(key) || ''; } catch (error) { return ''; }
+      }
+      function store(key, value) {
+        try { localStorage.setItem(key, value); } catch (error) { /* storage may be unavailable */ }
       }
 
       function inferBackendBase() {
@@ -125,54 +123,138 @@
 
       const apiBase = (configuredApiBase || inferBackendBase()).replace(/\/+$/, '');
       function apiUrl(path) { return `${apiBase}${path}`; }
-      function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character])); }
+      function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character])); }
+      function showNotice(text, isError = false) {
+        notice.hidden = false;
+        notice.className = isError ? 'notice error' : 'notice';
+        notice.textContent = text;
+      }
+
       function setMode(mode) {
         document.body.dataset.mode = mode;
         modeButtons.forEach(button => button.classList.toggle('active', button.dataset.mode === mode));
+        store('arxiv-compare-mode', mode);
+        if (mode === 'original') activeViewer = originalViewer;
+        if (mode === 'translated') activeViewer = translatedViewer;
       }
 
-      modeButtons.forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode)));
-      syncPagesButton.addEventListener('click', () => {
-        syncPages = !syncPages;
-        syncPagesButton.classList.toggle('active', syncPages);
-        syncPagesButton.textContent = syncPages ? '⇄ 同步页码' : '⇄ 独立页码';
+      function setSync(enabled) {
+        syncPages = enabled;
+        syncButton.classList.toggle('active', enabled);
+        store('arxiv-compare-sync', enabled ? 'on' : 'off');
+        if (enabled && originalViewer && translatedViewer) translatedViewer.setPosition(originalViewer.getPosition());
+      }
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      }
+
+      function setSplit(percent) {
+        const value = Math.min(Math.max(percent, 20), 80);
+        document.documentElement.style.setProperty('--split', `${value}%`);
+        return value;
+      }
+
+      const savedSplit = Number.parseFloat(readStored('arxiv-compare-split'));
+      if (savedSplit) setSplit(savedSplit);
+      divider.addEventListener('pointerdown', event => {
+        if (narrow.matches) return;
+        divider.setPointerCapture(event.pointerId);
+        divider.classList.add('dragging');
+        document.body.classList.add('dragging');
       });
-      fullscreenButton.addEventListener('click', async () => {
-        if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
-        else await document.exitFullscreen?.();
+      divider.addEventListener('pointermove', event => {
+        if (!divider.classList.contains('dragging')) return;
+        const rect = viewers.getBoundingClientRect();
+        setSplit(((event.clientX - rect.left) / rect.width) * 100);
+      });
+      divider.addEventListener('pointerup', event => {
+        if (!divider.classList.contains('dragging')) return;
+        divider.classList.remove('dragging');
+        document.body.classList.remove('dragging');
+        const rect = viewers.getBoundingClientRect();
+        store('arxiv-compare-split', String(setSplit(((event.clientX - rect.left) / rect.width) * 100)));
+      });
+      divider.addEventListener('dblclick', () => store('arxiv-compare-split', String(setSplit(50))));
+
+      modeButtons.forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode)));
+      syncButton.addEventListener('click', () => setSync(!syncPages));
+      document.getElementById('fullscreen').addEventListener('click', toggleFullscreen);
+      document.addEventListener('keydown', event => {
+        if (event.target.closest('input, textarea, select, [contenteditable]')) return;
+        if (!event.metaKey && !event.ctrlKey && !event.altKey) {
+          const modes = { 1: 'original', 2: 'split', 3: 'translated' };
+          if (modes[event.key]) { setMode(modes[event.key]); event.preventDefault(); return; }
+          if (event.key === 's') { setSync(!syncPages); event.preventDefault(); return; }
+          if (event.key === 'f') { toggleFullscreen(); event.preventDefault(); return; }
+        }
+        // Keys typed inside a viewer are handled there; forward the rest to the last-used viewer.
+        if (activeViewer && !event.target.closest('.pdf-stage') && activeViewer.handleKey(event)) event.preventDefault();
       });
 
+      setMode(readStored('arxiv-compare-mode') || (narrow.matches ? 'translated' : 'split'));
+      setSync(syncPages);
+
+
+      function setupAppendix(job) {
+        const button = document.getElementById('appendix');
+        const pending = window.arxivPendingAppendixCount(job);
+        if (!pending) return;
+        button.hidden = false;
+        button.textContent = `翻译附录（${pending} 个文件）`;
+        button.addEventListener('click', async () => {
+          button.disabled = true;
+          button.textContent = '附录翻译中…';
+          try {
+            await window.arxivTranslateAppendix(apiUrl, job.id, current => {
+              button.textContent = `附录翻译中 ${current.progress || 0}%`;
+            });
+            window.location.reload();
+          } catch (error) {
+            button.disabled = false;
+            button.textContent = '重试翻译附录';
+            button.title = `翻译附录失败：${error.message}`;
+          }
+        });
+      }
+
       async function load() {
-        if (!jobId) { status.className = 'error'; status.textContent = '缺少任务 ID'; return; }
+        if (!jobId) { showNotice('缺少任务 ID', true); return; }
         try {
           const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(jobId)}`));
-          const job = await response.json();
+          const job = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
-          summary.textContent = `${job.arxiv_id} · ${job.message}`;
-          paperInfo.href = job.arxiv_url;
-          actions.innerHTML = `<a href="${escapeHtml(job.arxiv_url)}" target="_blank" rel="noreferrer">查看 arXiv 页面</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">打开原文 PDF</a>${job.pdf_url ? `<a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">打开中文 PDF</a>` : ''}`;
+          const displayId = job.display_arxiv_id || job.arxiv_id;
+          document.title = `${displayId} · 对照阅读`;
+          title.textContent = `${displayId} · 对照阅读`;
+          const tokens = window.arxivTokenSummary(job);
+          infoBody.innerHTML = `<div>${escapeHtml(displayId)} · ${escapeHtml(job.message)}</div>${tokens ? `<div>${escapeHtml(tokens)}</div>` : ''}<div><a href="${escapeHtml(job.arxiv_url)}" target="_blank" rel="noreferrer">arXiv 页面</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">原文 PDF</a>${job.pdf_url ? `<a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">单独阅读中文 PDF</a><a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank" rel="noreferrer">下载中文 PDF</a>` : ''}</div>`;
           if (job.status !== 'completed' || !job.pdf_url) {
-            status.className = job.status === 'failed' ? 'error' : '';
-            status.textContent = job.error || '翻译任务尚未完成';
+            showNotice(job.error || `翻译任务尚未完成：${job.message || job.status}`, job.status === 'failed');
             return;
           }
-          status.textContent = window.arxivTokenSummary(job);
+          setupAppendix(job);
+          notice.hidden = true;
           viewers.hidden = false;
           [originalViewer, translatedViewer] = await Promise.all([
             createPdfViewer(document.getElementById('original-viewer'), job.original_pdf_url, {
-              onPageChange: page => {
-                if (syncPages && translatedViewer && translatedViewer.getPage() !== page) translatedViewer.setPage(page);
-              },
+              label: '原文',
+              storageKey: `${job.id}:original`,
+              onActivate: () => { activeViewer = originalViewer; },
+              onPositionChange: position => { if (syncPages && translatedViewer) translatedViewer.setPosition(position); },
             }),
-            createPdfViewer(document.getElementById('translated-viewer'), apiUrl(job.pdf_url), {
-              onPageChange: page => {
-                if (syncPages && originalViewer && originalViewer.getPage() !== page) originalViewer.setPage(page);
-              },
+            createPdfViewer(document.getElementById('translated-viewer'), apiUrl(`${job.pdf_url}?v=${job.updated_at || ''}`), {
+              label: '译文',
+              storageKey: `${job.id}:translated`,
+              onActivate: () => { activeViewer = translatedViewer; },
+              onPositionChange: position => { if (syncPages && originalViewer) originalViewer.setPosition(position); },
             }),
           ]);
+          activeViewer = document.body.dataset.mode === 'original' ? originalViewer : translatedViewer;
+          if (syncPages) originalViewer.setPosition(translatedViewer.getPosition());
         } catch (error) {
-          status.className = 'error';
-          status.textContent = `无法读取任务：${error.message}`;
+          showNotice(`无法读取任务：${error.message}`, true);
         }
       }
 

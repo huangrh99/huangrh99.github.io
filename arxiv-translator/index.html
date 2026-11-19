@@ -6,6 +6,7 @@
     <title>ArXiv LaTeX Translator</title>
     <style>
       :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
+      *, *::before, *::after { box-sizing: border-box; }
       body { margin: 0; min-height: 100vh; background: #f5f7fb; color: #172033; }
       main { max-width: 920px; margin: 8vh auto; padding: 0 20px; }
       .stack { display: grid; gap: 18px; }
@@ -22,8 +23,8 @@
       .error { color: #b42318; white-space: pre-wrap; }
       .success { color: #16764a; }
       .history-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-      .history-head h2 { margin: 0; font-size: 19px; }
-      .history-search { max-width: 300px; padding: 10px 12px; font-size: 14px; }
+      .history-head h2 { margin: 0; font-size: 19px; white-space: nowrap; }
+      .history-search { min-width: 0; max-width: 300px; padding: 10px 12px; font-size: 14px; }
       .history-list { display: grid; gap: 10px; margin-top: 16px; }
       .history-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; width: 100%; text-align: left; border: 1px solid #e2e7f0; background: #fbfcff; color: #172033; border-radius: 12px; padding: 13px 14px; cursor: pointer; overflow: hidden; }
       .history-item:hover { border-color: #9db4ee; background: #f4f7ff; }
@@ -32,7 +33,9 @@
       .history-status { white-space: nowrap; }
       .history-meta { grid-column: 1 / -1; min-width: 0; color: #697589; font-size: 13px; line-height: 1.5; margin-top: 6px; overflow-wrap: anywhere; }
       .history-empty { color: #697589; padding: 12px 0; }
-      .history-actions { grid-column: 1 / -1; margin-top: 8px; font-size: 14px; }
+      .history-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 8px; font-size: 14px; }
+      .history-actions a { margin-right: 0; white-space: nowrap; }
+      .history-actions .appendix-button { margin: 0; }
       details { margin-top: 18px; color: #596579; }
       summary { cursor: pointer; font-weight: 650; color: #39465d; }
       .backend-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
@@ -42,6 +45,7 @@
       .result-links { display: flex; flex-wrap: wrap; gap: 8px 0; }
       .retry-button { margin: 0 14px 0 0; padding: 8px 12px; background: #b42318; }
       .appendix-button { margin: 0 14px 0 0; padding: 8px 12px; background: #5b4acb; }
+      .history-appendix { padding: 5px 10px; font-size: 13px; }
       .service-status { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; color: #596579; font-size: 14px; }
       .status-dot { width: 9px; height: 9px; border-radius: 50%; background: #9aa6b8; }
       .status-dot.connected { background: #16764a; }
@@ -107,8 +111,8 @@
       function inferBackendBase() {
         if (window.location.protocol === 'file:') return 'http://127.0.0.1:8000';
         if (window.location.hostname.endsWith('.github.io')) return '';
-        const path = window.location.pathname.replace(/\/+$/, '');
-        return `${window.location.origin}${path === '/' ? '' : path}`;
+        const path = window.location.pathname.replace(/\/index\.html$/, '').replace(/\/+$/, '');
+        return `${window.location.origin}${path}`;
       }
       let apiBase = (configuredApiBase || inferBackendBase()).replace(/\/+$/, '');
       let timer;
@@ -175,9 +179,9 @@
           const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(id)}/retry`), {method: 'POST'});
           const job = await response.json();
           if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
+          watchedJobId = job.id;
           showJob(job);
-          clearInterval(timer);
-          timer = setInterval(() => poll(job.id), 1000);
+          if (job.status !== 'completed' && job.status !== 'failed') watchJob(job.id);
         } catch (error) {
           statusBox.hidden = false;
           message.className = 'error';
@@ -193,9 +197,9 @@
           const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(id)}/appendix`), {method: 'POST'});
           const job = await response.json();
           if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
+          watchedJobId = job.id;
           showJob(job);
-          clearInterval(timer);
-          timer = setInterval(() => poll(job.id), 1000);
+          if (job.status !== 'completed' && job.status !== 'failed') watchJob(job.id);
         } catch (error) {
           statusBox.hidden = false;
           message.className = 'error';
@@ -232,19 +236,25 @@
           const updated = job.updated_at ? new Date(job.updated_at * 1000).toLocaleString() : '';
           const tokens = window.arxivTokenSummary(job) ? ` · ${window.arxivTokenSummary(job)}` : '';
           const displayId = job.display_arxiv_id || job.arxiv_id;
-          const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions"><a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">阅读中文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">对照阅读</a></div>` : '';
+          const pendingAppendix = window.arxivPendingAppendixCount(job);
+          const appendixAction = pendingAppendix ? `<button class="appendix-button history-appendix" data-appendix-job-id="${escapeHtml(job.id)}" type="button">继续翻译 Appendix（${pendingAppendix} 个文件）</button>` : '';
+          const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions">${appendixAction}<a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">阅读中文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">对照阅读</a></div>` : '';
           return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span class="history-status">${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
         }).join('');
       }
 
+      let historyRequest = 0;
       async function loadHistory() {
+        const requestId = ++historyRequest;
         try {
           const query = encodeURIComponent(historyQuery.value.trim());
           const response = await fetch(apiUrl(`/api/jobs?query=${query}`));
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
+          if (requestId !== historyRequest) return;
           renderHistory(data.jobs || []);
         } catch (error) {
+          if (requestId !== historyRequest) return;
           historyList.innerHTML = `<div class="history-empty">${escapeHtml(connectionMessage())}</div>`;
         }
       }
@@ -255,28 +265,47 @@
         message.className = job.status === 'failed' ? 'error' : job.status === 'completed' ? 'success' : '';
         const tokenText = window.arxivTokenSummary(job) ? `，${window.arxivTokenSummary(job)}` : '';
         message.textContent = job.error ? `${job.message}\n${job.error}${tokenText}` : `${job.message}（${job.progress || 0}%${tokenText}）`;
+        if (job.status !== 'completed' && job.status !== 'failed') links.innerHTML = '';
         if (job.status === 'completed') {
           links.innerHTML = resultLinks(job);
           button.disabled = false;
           clearInterval(timer);
           loadHistory();
         } else if (job.status === 'failed') {
-          links.innerHTML = `${retryLink(job)}${job.log_url ? `<a href="${apiUrl(job.log_url)}" target="_blank">查看日志</a>` : ''}`;
+          links.innerHTML = `${retryLink(job)}${job.log_url ? `<a href="${escapeHtml(apiUrl(job.log_url))}" target="_blank">查看日志</a>` : ''}`;
           button.disabled = false;
           clearInterval(timer);
           loadHistory();
         }
       }
 
+      let watchedJobId = '';
+
+      function watchJob(id) {
+        watchedJobId = id;
+        clearInterval(timer);
+        timer = setInterval(() => poll(id), 1000);
+      }
+
       async function poll(id) {
         try {
-          const response = await fetch(apiUrl(`/api/jobs/${id}`));
-          const job = await response.json();
+          const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(id)}`));
+          const job = await response.json().catch(() => ({}));
+          if (id !== watchedJobId) return;
+          if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
           showJob(job);
         } catch (error) {
+          if (id !== watchedJobId) return;
+          if (error instanceof TypeError) {
+            statusBox.hidden = false;
+            message.className = 'error';
+            message.textContent = connectionMessage();
+            return;
+          }
+          clearInterval(timer);
           statusBox.hidden = false;
           message.className = 'error';
-          message.textContent = connectionMessage();
+          message.textContent = `读取任务失败：${error.message}`;
         }
       }
 
@@ -294,7 +323,7 @@
           button.disabled = false;
           return;
         }
-        const job = await response.json();
+        const job = await response.json().catch(() => ({}));
         if (!response.ok) {
           statusBox.hidden = false;
           message.className = 'error';
@@ -302,16 +331,37 @@
           button.disabled = false;
           return;
         }
+        watchedJobId = job.id;
         showJob(job);
-        timer = setInterval(() => poll(job.id), 1000);
+        if (job.status !== 'completed' && job.status !== 'failed') watchJob(job.id);
       });
 
       historyList.addEventListener('click', event => {
         if (event.target.closest('a')) return;
+        const appendixButton = event.target.closest('[data-appendix-job-id]');
+        if (appendixButton) {
+          translateAppendix(appendixButton.dataset.appendixJobId);
+          return;
+        }
         const item = event.target.closest('[data-job-id]');
         if (!item) return;
-        poll(item.dataset.jobId);
+        openHistoryJob(item.dataset.jobId);
       });
+
+      historyList.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.target.closest('a')) return;
+        const item = event.target.closest('[data-job-id]');
+        if (!item) return;
+        event.preventDefault();
+        openHistoryJob(item.dataset.jobId);
+      });
+
+      function openHistoryJob(id) {
+        links.innerHTML = '';
+        watchJob(id);
+        poll(id);
+      }
 
       links.addEventListener('click', event => {
         const retryButton = event.target.closest('[data-retry-job-id]');

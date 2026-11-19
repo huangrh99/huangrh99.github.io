@@ -36,3 +36,25 @@
   window.arxivTokenSummary = tokenSummary;
 }
 ());
+
+// Start the Appendix translation for a completed job and wait until it finishes.
+// onProgress receives each intermediate job state; the resolved value is the final job.
+window.arxivTranslateAppendix = async function arxivTranslateAppendix(apiUrl, jobId, onProgress) {
+  const jobUrl = apiUrl(`/api/jobs/${encodeURIComponent(jobId)}`);
+  const started = await fetch(`${jobUrl}/appendix`, { method: 'POST' });
+  let job = await started.json().catch(() => ({}));
+  if (!started.ok) throw new Error(job.error || `HTTP ${started.status}`);
+  while (job.status === 'queued' || job.status === 'running') {
+    if (onProgress) onProgress(job);
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    const response = await fetch(jobUrl);
+    job = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
+  }
+  if (job.status !== 'completed') throw new Error(job.error || '翻译 Appendix 失败');
+  return job;
+};
+
+window.arxivPendingAppendixCount = function arxivPendingAppendixCount(job) {
+  return job && job.status === 'completed' && Array.isArray(job.appendix_files) ? job.appendix_files.length : 0;
+};
