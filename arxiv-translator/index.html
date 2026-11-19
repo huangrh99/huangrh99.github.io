@@ -89,8 +89,8 @@
         </section>
       </div>
     </main>
-    <script src="config.js?v=20261120b"></script>
-    <script src="formatters.js?v=20261120b"></script>
+    <script src="config.js?v=20261120c"></script>
+    <script src="formatters.js?v=20261120c"></script>
     <script>
       const form = document.getElementById('job-form');
       const button = document.getElementById('submit');
@@ -160,8 +160,7 @@
 
       function resultLinks(job) {
         const compareUrl = `compare.html?job=${encodeURIComponent(job.id)}`;
-        const readerUrl = `reader.html?job=${encodeURIComponent(job.id)}`;
-        return `<div class="result-links">${appendixLink(job)}<a href="${escapeHtml(readerUrl)}" target="_blank">打开中文 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a><a href="${escapeHtml(compareUrl)}" target="_blank">对照阅读</a><a href="${escapeHtml(apiUrl(job.source_url))}">下载翻译源码</a><a href="${escapeHtml(apiUrl(job.log_url))}" target="_blank">查看日志</a></div>`;
+        return `<div class="result-links">${appendixLink(job)}<a href="${escapeHtml(job.arxiv_url)}" target="_blank" rel="noreferrer">Arxiv</a><a href="${escapeHtml(compareUrl)}" target="_blank">翻译阅读</a></div>`;
       }
 
       function retryLink(job) {
@@ -238,7 +237,7 @@
           const displayId = job.display_arxiv_id || job.arxiv_id;
           const pendingAppendix = typeof window.arxivPendingAppendixCount === 'function' ? window.arxivPendingAppendixCount(job) : 0;
           const appendixAction = pendingAppendix ? `<button class="appendix-button history-appendix" data-appendix-job-id="${escapeHtml(job.id)}" type="button">继续翻译 Appendix（${pendingAppendix} 个文件）</button>` : '';
-          const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions">${appendixAction}<a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">阅读中文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">对照阅读</a></div>` : '';
+          const readLinks = job.status === 'completed' && job.pdf_url ? `<div class="history-actions">${appendixAction}<a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">翻译阅读</a></div>` : '';
           return `<div class="history-item" role="button" tabindex="0" data-job-id="${escapeHtml(job.id)}"><div class="history-main"><span class="history-id">${escapeHtml(displayId)}</span><span class="history-status">${historyStatus(job)}</span></div><div class="history-meta">${escapeHtml(updated)}${tokens}</div>${readLinks}</div>`;
         }).join('');
       }
