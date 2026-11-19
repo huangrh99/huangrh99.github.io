@@ -17,8 +17,19 @@
       .viewer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
       .viewer { min-width: 0; }
       .viewer h2 { margin: 0 0 10px; font-size: 18px; }
-      iframe { display: block; width: 100%; height: 78vh; min-height: 560px; border: 1px solid #d9e0ec; border-radius: 10px; background: #eef2f8; }
-      @media (max-width: 900px) { .viewer-grid { grid-template-columns: 1fr; } iframe { min-height: 70vh; } }
+      .pdf-viewer { border: 1px solid #d9e0ec; border-radius: 12px; overflow: hidden; background: #eef2f8; }
+      .pdf-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; background: #172033; color: #fff; }
+      .pdf-toolbar button, .pdf-toolbar input, .pdf-open-link { border: 1px solid #45516a; border-radius: 7px; background: #26334c; color: #fff; padding: 7px 10px; font: inherit; text-decoration: none; }
+      .pdf-toolbar button:disabled { opacity: .45; }
+      .pdf-toolbar button.active { background: #2457d6; border-color: #75a0ff; }
+      .pdf-toolbar input { width: 58px; text-align: center; }
+      .pdf-page-total, .pdf-zoom-label { color: #d4dbea; min-width: 48px; }
+      .pdf-viewer-status { padding: 8px 12px; color: #596579; background: #fff; }
+      .pdf-viewer-status.error { color: #b42318; }
+      .pdf-page-stage { height: 72vh; min-height: 560px; padding: 14px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+      .pdf-page-canvas { display: block; background: #fff; box-shadow: 0 8px 26px rgba(27, 45, 80, .16); }
+      @media (max-width: 900px) { .viewer-grid { grid-template-columns: 1fr; } .pdf-page-stage { min-height: 68vh; } }
+      @media (max-width: 700px) { main { margin: 12px auto; padding: 0 10px 20px; } .card { padding: 14px; } .pdf-toolbar { gap: 5px; padding: 8px; } .pdf-toolbar button, .pdf-toolbar input, .pdf-open-link { padding: 6px 7px; font-size: 13px; } }
     </style>
   </head>
   <body>
@@ -30,30 +41,19 @@
         <div id="status"></div>
       </section>
       <section id="viewers" class="viewer-grid" hidden>
-        <div class="card viewer">
-          <h2>原文 PDF</h2>
-          <iframe id="original-pdf" title="原文 PDF"></iframe>
-        </div>
-        <div class="card viewer">
-          <h2>中文翻译 PDF</h2>
-          <iframe id="translated-pdf" title="中文翻译 PDF"></iframe>
-        </div>
+        <div class="card viewer"><h2>原文 PDF</h2><div id="original-viewer"></div></div>
+        <div class="card viewer"><h2>中文翻译 PDF</h2><div id="translated-viewer"></div></div>
       </section>
     </main>
     <script src="config.js"></script>
-    <script>
+    <script type="module">
+      import { createPdfViewer } from './pdf-viewer.js';
+
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get('job') || '';
       const queryApiBase = params.get('api') || '';
       const storedApiBase = readStoredApiBase();
       const configuredApiBase = window.ARXIV_API_BASE || queryApiBase || storedApiBase;
-      function inferBackendBase() {
-        if (window.location.protocol === 'file:') return 'http://127.0.0.1:8000';
-        if (window.location.hostname.endsWith('.github.io')) return '';
-        const path = window.location.pathname.replace(/\/+$/, '');
-        return `${window.location.origin}${path.endsWith('/compare.html') ? path.slice(0, -'/compare.html'.length) : path}`;
-      }
-      const apiBase = (configuredApiBase || inferBackendBase()).replace(/\/+$/, '');
       const summary = document.getElementById('summary');
       const actions = document.getElementById('actions');
       const status = document.getElementById('status');
@@ -63,33 +63,36 @@
         try { return localStorage.getItem('arxiv-translator-api-base') || ''; } catch (error) { return ''; }
       }
 
-      function apiUrl(path) { return `${apiBase}${path}`; }
-
-      function escapeHtml(value) {
-        return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+      function inferBackendBase() {
+        if (window.location.protocol === 'file:') return 'http://127.0.0.1:8000';
+        if (window.location.hostname.endsWith('.github.io')) return '';
+        const path = window.location.pathname.replace(/\/+$/, '');
+        return `${window.location.origin}${path.endsWith('/compare.html') ? path.slice(0, -'/compare.html'.length) : path}`;
       }
 
+      const apiBase = (configuredApiBase || inferBackendBase()).replace(/\/+$/, '');
+      function apiUrl(path) { return `${apiBase}${path}`; }
+      function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character])); }
+
       async function load() {
-        if (!jobId) {
-          summary.textContent = '缺少任务 ID';
-          return;
-        }
+        if (!jobId) { status.className = 'error'; status.textContent = '缺少任务 ID'; return; }
         try {
           const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(jobId)}`));
           const job = await response.json();
           if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
           summary.textContent = `${job.arxiv_id} · ${job.message}`;
-          const readerUrl = `reader.html?job=${encodeURIComponent(job.id)}`;
-          actions.innerHTML = `<a href="${escapeHtml(job.arxiv_url)}" target="_blank">查看 arXiv 页面</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a>${job.pdf_url ? `<a href="${escapeHtml(readerUrl)}" target="_blank">打开中文 PDF</a>` : ''}`;
+          actions.innerHTML = `<a href="${escapeHtml(job.arxiv_url)}" target="_blank" rel="noreferrer">查看 arXiv 页面</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">打开原文 PDF</a>${job.pdf_url ? `<a href="${escapeHtml(`reader.html?job=${encodeURIComponent(job.id)}`)}" target="_blank">打开中文 PDF</a>` : ''}`;
           if (job.status !== 'completed' || !job.pdf_url) {
             status.className = job.status === 'failed' ? 'error' : '';
             status.textContent = job.error || '翻译任务尚未完成';
             return;
           }
           status.textContent = Number.isFinite(job.total_tokens) ? `本篇论文消耗 ${job.total_tokens} tokens` : '';
-          document.getElementById('original-pdf').src = job.original_pdf_url;
-          document.getElementById('translated-pdf').src = apiUrl(job.pdf_url);
           viewers.hidden = false;
+          await Promise.all([
+            createPdfViewer(document.getElementById('original-viewer'), job.original_pdf_url),
+            createPdfViewer(document.getElementById('translated-viewer'), apiUrl(job.pdf_url)),
+          ]);
         } catch (error) {
           status.className = 'error';
           status.textContent = `无法读取任务：${error.message}`;

@@ -7,13 +7,24 @@
     <style>
       :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
       body { margin: 0; background: #f5f7fb; color: #172033; }
-      main { max-width: 1180px; margin: 28px auto; padding: 0 20px 32px; }
+      main { max-width: 1240px; margin: 28px auto; padding: 0 20px 32px; }
       .card { background: white; border: 1px solid #e2e7f0; border-radius: 18px; padding: 22px; box-shadow: 0 12px 36px rgba(27, 45, 80, .08); }
       h1 { margin: 0 0 8px; font-size: 25px; }
       p { color: #596579; line-height: 1.6; }
       a { color: #2457d6; margin-right: 14px; }
       .error { color: #b42318; white-space: pre-wrap; }
-      iframe { display: block; width: 100%; height: 82vh; min-height: 640px; margin-top: 18px; border: 1px solid #d9e0ec; border-radius: 10px; background: #eef2f8; }
+      .pdf-viewer { margin-top: 18px; border: 1px solid #d9e0ec; border-radius: 12px; overflow: hidden; background: #eef2f8; }
+      .pdf-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; background: #172033; color: #fff; }
+      .pdf-toolbar button, .pdf-toolbar input, .pdf-open-link { border: 1px solid #45516a; border-radius: 7px; background: #26334c; color: #fff; padding: 7px 10px; font: inherit; text-decoration: none; }
+      .pdf-toolbar button:disabled { opacity: .45; }
+      .pdf-toolbar button.active { background: #2457d6; border-color: #75a0ff; }
+      .pdf-toolbar input { width: 58px; text-align: center; }
+      .pdf-page-total, .pdf-zoom-label { color: #d4dbea; min-width: 48px; }
+      .pdf-viewer-status { padding: 8px 12px; color: #596579; background: #fff; }
+      .pdf-viewer-status.error { color: #b42318; }
+      .pdf-page-stage { min-height: 70vh; padding: 14px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+      .pdf-page-canvas { display: block; background: #fff; box-shadow: 0 8px 26px rgba(27, 45, 80, .16); }
+      @media (max-width: 700px) { main { margin: 12px auto; padding: 0 10px 20px; } .card { padding: 14px; } .pdf-toolbar { gap: 5px; padding: 8px; } .pdf-toolbar button, .pdf-toolbar input, .pdf-open-link { padding: 6px 7px; font-size: 13px; } .pdf-page-stage { min-height: 72vh; padding: 8px; } }
     </style>
   </head>
   <body>
@@ -23,11 +34,13 @@
         <p id="summary">正在读取任务…</p>
         <div id="actions"></div>
         <div id="status"></div>
-        <iframe id="pdf" title="中文翻译 PDF" hidden></iframe>
+        <div id="pdf-viewer" hidden></div>
       </section>
     </main>
     <script src="config.js"></script>
-    <script>
+    <script type="module">
+      import { createPdfViewer } from './pdf-viewer.js';
+
       const jobId = new URLSearchParams(window.location.search).get('job') || '';
       const queryApiBase = new URLSearchParams(window.location.search).get('api') || '';
       const storedApiBase = readStoredApiBase();
@@ -35,7 +48,7 @@
       const summary = document.getElementById('summary');
       const actions = document.getElementById('actions');
       const status = document.getElementById('status');
-      const pdf = document.getElementById('pdf');
+      const viewerRoot = document.getElementById('pdf-viewer');
 
       function readStoredApiBase() {
         try { return localStorage.getItem('arxiv-translator-api-base') || ''; } catch (error) { return ''; }
@@ -64,10 +77,10 @@
             status.textContent = job.error || '翻译任务尚未完成';
             return;
           }
-          actions.innerHTML = `<a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank">下载原始 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank">打开原文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}">对照阅读</a>`;
-          pdf.src = `${apiUrl(job.pdf_url)}#page=1`;
-          pdf.hidden = false;
+          actions.innerHTML = `<a href="${escapeHtml(apiUrl(job.pdf_url))}" target="_blank" rel="noreferrer">下载中文 PDF</a><a href="${escapeHtml(job.original_pdf_url)}" target="_blank" rel="noreferrer">打开原文 PDF</a><a href="${escapeHtml(`compare.html?job=${encodeURIComponent(job.id)}`)}">对照阅读</a>`;
           status.textContent = Number.isFinite(job.total_tokens) ? `本篇论文消耗 ${job.total_tokens} tokens` : '';
+          viewerRoot.hidden = false;
+          await createPdfViewer(viewerRoot, apiUrl(job.pdf_url));
         } catch (error) {
           status.className = 'error';
           status.textContent = `无法读取任务：${error.message}`;
